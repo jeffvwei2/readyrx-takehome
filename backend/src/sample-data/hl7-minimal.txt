@@ -1,0 +1,8 @@
+MSH|^~\&|LabCorp|LabCorp Lab|Hospital System|Hospital|20231221143000||ORU^R01^ORU_R01|MSG002|P|2.5.1
+PID|1||PATIENT456^^^Hospital^MR||Johnson^Jane^Marie||19920520|F|||456 Oak Ave^^Springfield^IL^62701||555-987-6543|||S|||PATIENT456
+OBR|1|ORD002||CMP^Comprehensive Metabolic Panel^LN|||20231221090000|||||||||9876543210^Williams^Robert^MD|||||20231221143000|||F|||||||20231221143000
+OBX|1|NM|33747-0^Blood Glucose^LN||88|mg/dL|70-100|N|F|||20231221143000
+OBX|2|NM|2160-0^Creatinine^LN||0.9|mg/dL|0.6-1.2|N|F|||20231221143000
+OBX|3|NM|3094-0^Blood Urea Nitrogen^LN||15|mg/dL|7-20|N|F|||20231221143000
+OBX|4|NM|1742-6^Alanine Aminotransferase^LN||22|U/L|7-56|N|F|||20231221143000
+OBX|5|NM|1920-8^Aspartate Aminotransferase^LN||25|U/L|10-40|N|F|||20231221143000

@@ -1,0 +1,264 @@
+{
+  "resourceType": "Bundle",
+  "id": "lab-results-bundle-002",
+  "type": "collection",
+  "timestamp": "2023-12-21T14:30:00Z",
+  "total": 5,
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:obs-101",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-101",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33747-0",
+              "display": "Blood Glucose"
+            }
+          ],
+          "text": "Blood Glucose"
+        },
+        "subject": {
+          "reference": "Patient/PATIENT456"
+        },
+        "effectiveDateTime": "2023-12-21T14:30:00Z",
+        "valueQuantity": {
+          "value": 88,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        },
+        "referenceRange": [
+          {
+            "low": {
+              "value": 70,
+              "unit": "mg/dL"
+            },
+            "high": {
+              "value": 100,
+              "unit": "mg/dL"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-102",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-102",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ],
+          "text": "Creatinine"
+        },
+        "subject": {
+          "reference": "Patient/PATIENT456"
+        },
+        "effectiveDateTime": "2023-12-21T14:30:00Z",
+        "valueQuantity": {
+          "value": 0.9,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        },
+        "referenceRange": [
+          {
+            "low": {
+              "value": 0.6,
+              "unit": "mg/dL"
+            },
+            "high": {
+              "value": 1.2,
+              "unit": "mg/dL"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-103",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-103",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Blood Urea Nitrogen"
+            }
+          ],
+          "text": "Blood Urea Nitrogen"
+        },
+        "subject": {
+          "reference": "Patient/PATIENT456"
+        },
+        "effectiveDateTime": "2023-12-21T14:30:00Z",
+        "valueQuantity": {
+          "value": 15,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        },
+        "referenceRange": [
+          {
+            "low": {
+              "value": 7,
+              "unit": "mg/dL"
+            },
+            "high": {
+              "value": 20,
+              "unit": "mg/dL"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-104",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-104",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "1742-6",
+              "display": "Alanine Aminotransferase"
+            }
+          ],
+          "text": "Alanine Aminotransferase"
+        },
+        "subject": {
+          "reference": "Patient/PATIENT456"
+        },
+        "effectiveDateTime": "2023-12-21T14:30:00Z",
+        "valueQuantity": {
+          "value": 22,
+          "unit": "U/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "U/L"
+        },
+        "referenceRange": [
+          {
+            "low": {
+              "value": 7,
+              "unit": "U/L"
+            },
+            "high": {
+              "value": 56,
+              "unit": "U/L"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-105",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-105",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "1920-8",
+              "display": "Aspartate Aminotransferase"
+            }
+          ],
+          "text": "Aspartate Aminotransferase"
+        },
+        "subject": {
+          "reference": "Patient/PATIENT456"
+        },
+        "effectiveDateTime": "2023-12-21T14:30:00Z",
+        "valueQuantity": {
+          "value": 25,
+          "unit": "U/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "U/L"
+        },
+        "referenceRange": [
+          {
+            "low": {
+              "value": 10,
+              "unit": "U/L"
+            },
+            "high": {
+              "value": 40,
+              "unit": "U/L"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

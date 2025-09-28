@@ -1,0 +1,461 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "wbc",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "6690-2",
+              "display": "White Blood Cell Count"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 7.2,
+          "unit": "K/uL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "rbc",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "789-8",
+              "display": "Red Blood Cell Count"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 4.5,
+          "unit": "M/uL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "hemoglobin",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 14.2,
+          "unit": "g/dL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "hematocrit",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "4544-3",
+              "display": "Hematocrit"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 42.1,
+          "unit": "%"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "mcv",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "785-6",
+              "display": "Mean Corpuscular Volume"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 88,
+          "unit": "fL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "mch",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "786-4",
+              "display": "Mean Corpuscular Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 30.5,
+          "unit": "pg"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "mchc",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "787-2",
+              "display": "Mean Corpuscular Hemoglobin Concentration"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 34.2,
+          "unit": "g/dL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "platelets",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "26515-7",
+              "display": "Platelet Count"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 285,
+          "unit": "K/uL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "neutrophils",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "770-8",
+              "display": "Neutrophils"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 65,
+          "unit": "%"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "lymphocytes",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "736-9",
+              "display": "Lymphocytes"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 28,
+          "unit": "%"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "monocytes",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "742-7",
+              "display": "Monocytes"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 5,
+          "unit": "%"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "eosinophils",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "713-8",
+              "display": "Eosinophils"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 2,
+          "unit": "%"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "basophils",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "706-2",
+              "display": "Basophils"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/12345"
+        },
+        "effectiveDateTime": "2025-09-28T12:00:00Z",
+        "valueQuantity": {
+          "value": 0.5,
+          "unit": "%"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

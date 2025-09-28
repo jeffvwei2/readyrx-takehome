@@ -1,0 +1,25 @@
+{
+  "name": "readyrx-takehome",
+  "version": "1.0.0",
+  "description": "A React + Express + Firestore application",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "concurrently --kill-others --prefix \"[{name}]\" --names \"emulator,server,client\" \"npm run emulator\" \"npm run server\" \"npm run client\"",
+    "emulator": "./start-emulator.sh",
+    "server": "cd backend && PORT=3001 npm run dev",
+    "client": "cd frontend && npm start",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "production": "USE_FIREBASE_PRODUCTION=true npm run dev",
+    "clean": "pkill -f firebase || true && pkill -f ts-node-dev || true && pkill -f react-scripts || true",
+    "test-emulator": "curl -s http://localhost:8080 && echo ' - Emulator OK'",
+    "test-server": "curl -s http://localhost:3001/api/health && echo ' - Server OK'"
+  },
+  "keywords": ["react", "express", "firestore"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
