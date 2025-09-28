@@ -3,6 +3,7 @@ import { seedTestPatient } from './seedTestPatient';
 import { seedLabTests } from './seedLabTests';
 import { seedMetrics } from './seedMetrics';
 import { seedLabOrders } from './seedLabOrders';
+import { seedRequests } from './seedRequests';
 
 export const seedAll = async (): Promise<void> => {
   console.log('🌱 Starting database seeding...');
@@ -13,6 +14,7 @@ export const seedAll = async (): Promise<void> => {
     await seedMetrics();
     await seedLabTests();
     await seedLabOrders();
+    await seedRequests();
     
     console.log('✅ Database seeding completed successfully!');
   } catch (error) {

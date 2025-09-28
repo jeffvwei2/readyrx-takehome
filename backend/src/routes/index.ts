@@ -7,6 +7,7 @@ import { metricRoutes } from '../modules/metrics';
 import { labOrderRoutes } from '../modules/labOrders';
 import { resultRoutes } from '../modules/results';
 import { parserRoutes } from '../modules/parsers';
+import { requestRoutes } from '../modules/requests';
 
 const router = Router();
 
@@ -33,5 +34,8 @@ router.use('/results', resultRoutes);
 
 // Parser routes
 router.use('/parsers', parserRoutes);
+
+// Request routes
+router.use('/requests', requestRoutes);
 
 export default router;

@@ -66,6 +66,53 @@ export class ParserService {
     }
   }
 
+  static async parseAndSaveResultsForNewOrder(
+    data: string,
+    labOrderId: string,
+    labTestId: string,
+    parserType?: ParserType
+  ): Promise<ParseResult> {
+    try {
+      // First, parse the data to extract lab report (without requiring existing lab order)
+      const parseResult = await this.parseLabData(data, '', '', parserType);
+      
+      if (!parseResult.success || !parseResult.labReport) {
+        return {
+          success: false,
+          results: [],
+          errors: ['Failed to parse lab data'],
+          warnings: []
+        };
+      }
+
+      // Create patient results from the parsed lab report
+      const results = await this.createResultsFromLabReport(parseResult.labReport, labOrderId, labTestId);
+      
+      if (results.length > 0) {
+        // Update lab order status to completed
+        await this.updateLabOrderStatus(labOrderId, 'Completed');
+        
+        // Log successful parsing
+        console.log(`Successfully parsed ${results.length} results for new lab order ${labOrderId}`);
+      }
+      
+      return {
+        success: true,
+        results,
+        errors: [],
+        warnings: []
+      };
+    } catch (error) {
+      console.error('Parse and save for new order error:', error);
+      return {
+        success: false,
+        results: [],
+        errors: [`Parse and save failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
+        warnings: []
+      };
+    }
+  }
+
   static async getSupportedParsers(): Promise<ParserType[]> {
     return ParserFactory.getSupportedTypes();
   }
@@ -161,6 +208,65 @@ export class ParserService {
     }
     
     return createdResults;
+  }
+
+  private static async createResultsFromLabReport(
+    labReport: any, 
+    labOrderId: string, 
+    labTestId: string
+  ): Promise<any[]> {
+    const results = [];
+    
+    // Get lab order data to get patient ID and other details
+    const labOrderDoc = await db.collection('labOrders').doc(labOrderId).get();
+    const labOrderData = labOrderDoc.data();
+    
+    if (!labOrderData) {
+      console.error('Lab order data not found:', labOrderId);
+      return results;
+    }
+    
+    // Get lab data
+    const labDoc = await db.collection('labs').doc(labOrderData.labId).get();
+    const labData = labDoc.data();
+    
+    // Create results for each observation in the lab report
+    for (const observation of labReport.observations) {
+      // Find matching metric by name
+      const metricsSnapshot = await db.collection('metrics')
+        .where('name', '==', observation.metricName)
+        .get();
+      
+      if (!metricsSnapshot.empty) {
+        const metricDoc = metricsSnapshot.docs[0];
+        
+        const resultData = {
+          patientId: labOrderData.patientId,
+          metricId: metricDoc.id,
+          metricName: observation.metricName,
+          result: observation.result,
+          labOrderId: labOrderId,
+          labTestId: labTestId,
+          labId: labOrderData.labId,
+          labName: labData?.name || labReport.labName,
+          orderId: labOrderData.orderId,
+          orderingProvider: labOrderData.orderingProvider,
+          resultDate: observation.observationDate || labReport.reportDate
+        };
+        
+        try {
+          const resultId = await ResultService.createResult(resultData);
+          results.push({
+            ...resultData,
+            id: resultId
+          });
+        } catch (error) {
+          console.error('Error creating patient result:', error);
+        }
+      }
+    }
+    
+    return results;
   }
 
   private static async updateLabOrderStatus(labOrderId: string, status: string): Promise<void> {

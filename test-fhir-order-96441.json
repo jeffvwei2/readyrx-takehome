@@ -9,7 +9,7 @@
       "fullUrl": "urn:uuid:service-request-12345",
       "resource": {
         "resourceType": "ServiceRequest",
-        "id": "57875",
+        "id": "service-request-12345",
         "status": "completed",
         "intent": "order",
         "category": [
@@ -38,7 +38,7 @@
         "identifier": [
           {
             "system": "http://hospital.example.org/orders",
-            "value": "57875"
+            "value": "96441"
           }
         ],
         "requester": {
@@ -91,10 +91,10 @@
         },
         "basedOn": [
           {
-            "reference": "urn:uuid:96441",
+            "reference": "urn:uuid:service-request-12345",
             "identifier": {
               "system": "http://hospital.example.org/orders",
-              "value": "0RBowqYDPdMVvcPcgh2c"
+              "value": "96441"
             }
           }
         ],
@@ -152,7 +152,7 @@
             "reference": "urn:uuid:service-request-12345",
             "identifier": {
               "system": "http://hospital.example.org/orders",
-              "value": "12345"
+              "value": "96441"
             }
           }
         ],
@@ -210,7 +210,7 @@
             "reference": "urn:uuid:service-request-12345",
             "identifier": {
               "system": "http://hospital.example.org/orders",
-              "value": "12345"
+              "value": "96441"
             }
           }
         ],

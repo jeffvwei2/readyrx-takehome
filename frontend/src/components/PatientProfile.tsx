@@ -34,7 +34,7 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
 
   const handleFileUpload = async (fileContent: string, fileName: string) => {
     try {
-      // Parse the lab data using our parser service
+      // Step 1: Parse the lab data to extract information
       const parseResponse = await axios.post('/api/parsers/parse', {
         data: fileContent,
         labOrderId: '', // Will be generated
@@ -47,10 +47,10 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
 
       const labReport = parseResponse.data.labReport;
 
-      // Generate a unique order ID
-      const orderId = Math.floor(Math.random() * 1000000) + 1;
+      // Step 2: Use the order ID from the parsed lab report, or generate a new one if not found
+      const orderId = labReport.orderId && labReport.orderId > 0 ? labReport.orderId : Math.floor(Math.random() * 1000000) + 1;
 
-      // Create a new lab order with the parsed data
+      // Step 3: Create/update the lab order
       const currentDate = new Date();
       const labOrderResponse = await axios.post('/api/lab-orders', {
         patientId: patient.id,
@@ -63,10 +63,24 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
         completedDate: currentDate
       });
 
-      // Refresh lab orders to show the new one
+      const labOrderId = labOrderResponse.data.id;
+
+      // Step 4: Parse the data again with the lab order ID to create patient results
+      const resultParseResponse = await axios.post('/api/parsers/parse', {
+        data: fileContent,
+        labOrderId: labOrderId,
+        labTestId: 'FJfHlDxjEdtnke339tGW', // Use the same lab test ID
+        isNewOrder: true // Flag to indicate this is a newly created lab order
+      });
+
+      if (resultParseResponse.data.success) {
+        console.log(`Created ${resultParseResponse.data.results.length} patient results`);
+      }
+
+      // Step 5: Refresh lab orders to show the new one
       await fetchLabOrders();
       
-      console.log('Lab order created successfully:', labOrderResponse.data);
+      console.log('Lab order and results created successfully:', labOrderResponse.data);
     } catch (error) {
       console.error('Error processing file upload:', error);
       throw new Error('Failed to process lab results file');

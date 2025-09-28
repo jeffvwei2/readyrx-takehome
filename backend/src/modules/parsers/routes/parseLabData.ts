@@ -4,7 +4,7 @@ import { ParserType } from '../services/parserFactory';
 
 export const parseLabData = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { labOrderId, labTestId, parserType } = req.body;
+    const { labOrderId, labTestId, parserType, isNewOrder } = req.body;
     const labData = req.body.data;
     
     if (!labData) {
@@ -25,12 +25,23 @@ export const parseLabData = async (req: Request, res: Response): Promise<void> =
       return;
     }
     
-    const parseResult = await ParserService.parseAndSaveResults(
-      labData,
-      labOrderId,
-      labTestId,
-      parserType as ParserType
-    );
+    // Use different method based on whether this is a new order or existing order
+    let parseResult;
+    if (isNewOrder) {
+      parseResult = await ParserService.parseAndSaveResultsForNewOrder(
+        labData,
+        labOrderId,
+        labTestId,
+        parserType as ParserType
+      );
+    } else {
+      parseResult = await ParserService.parseAndSaveResults(
+        labData,
+        labOrderId,
+        labTestId,
+        parserType as ParserType
+      );
+    }
     
     res.json(parseResult);
   } catch (error) {
