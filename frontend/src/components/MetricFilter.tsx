@@ -49,6 +49,19 @@ const MetricFilter: React.FC<MetricFilterProps> = ({
     fetchAvailableMetrics();
   }, [fetchAvailableMetrics]);
 
+  // Listen for refresh events
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchAvailableMetrics();
+    };
+
+    window.addEventListener('refreshMetricsDashboard', handleRefresh);
+    
+    return () => {
+      window.removeEventListener('refreshMetricsDashboard', handleRefresh);
+    };
+  }, [fetchAvailableMetrics]);
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4">
       <div className="flex items-center justify-between mb-3">

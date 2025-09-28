@@ -4,6 +4,7 @@ import './App.css';
 import { Patient } from './types';
 import Sidebar from './components/Sidebar';
 import PatientProfile from './components/PatientProfile';
+import { AuthProvider, ProtectedRoute } from './components/Auth';
 
 const App: React.FC = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -47,27 +48,31 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <Sidebar 
-        onPatientSelect={handlePatientSelect}
-        onRefreshPatients={handleRefreshPatients}
-      />
-      
-      {selectedPatient ? (
-        <PatientProfile patient={selectedPatient} />
-      ) : (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-              No Patient Selected
-            </h2>
-            <p className="text-gray-600">
-              Please select a patient from the sidebar to view their profile.
-            </p>
-          </div>
+    <AuthProvider>
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-100 flex">
+          <Sidebar 
+            onPatientSelect={handlePatientSelect}
+            onRefreshPatients={handleRefreshPatients}
+          />
+          
+          {selectedPatient ? (
+            <PatientProfile patient={selectedPatient} />
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+                  No Patient Selected
+                </h2>
+                <p className="text-gray-600">
+                  Please select a patient from the sidebar to view their profile.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </ProtectedRoute>
+    </AuthProvider>
   );
 };
 

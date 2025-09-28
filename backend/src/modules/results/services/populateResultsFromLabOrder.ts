@@ -1,5 +1,6 @@
 import { db } from '../../../config/firebase';
 import { CreatePatientResultRequest } from '../types/resultTypes';
+import { EncryptionService } from '../../../shared/encryption/encryptionService';
 
 export const populateResultsFromLabOrder = async (labOrderId: string): Promise<boolean> => {
   try {
@@ -64,7 +65,7 @@ export const populateResultsFromLabOrder = async (labOrderId: string): Promise<b
       };
       
       return db.collection('patientResults').add({
-        ...resultData,
+        ...EncryptionService.encryptLabResult(resultData),
         createdAt: new Date(),
       });
     });

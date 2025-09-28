@@ -190,7 +190,7 @@ export const seedMetrics = async (): Promise<void> => {
     const metricRefs: string[] = [];
     
     for (const metric of allMetrics) {
-      const metricRef = await db.collection('metrics').add(metric);
+        const metricRef = await db.collection('metrics').add(metric);
       metricRefs.push(metricRef.id);
     }
     

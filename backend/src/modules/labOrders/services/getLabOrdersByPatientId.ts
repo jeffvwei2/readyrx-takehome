@@ -8,7 +8,6 @@ type LabOrderData = Omit<LabOrder, 'labName'>;
 export const getLabOrdersByPatientId = async (patientId: string): Promise<LabOrder[]> => {
   const labOrdersSnapshot = await db.collection('labOrders')
     .where('patientId', '==', patientId)
-    .orderBy('orderedDate', 'desc')
     .get();
   
   const labOrders: LabOrderData[] = [];
@@ -30,6 +29,13 @@ export const getLabOrdersByPatientId = async (patientId: string): Promise<LabOrd
       cancelledDate: data.cancelledDate,
       createdAt: data.createdAt
     });
+  });
+
+  // Sort by orderedDate in memory (handle null/undefined dates)
+  labOrders.sort((a, b) => {
+    const dateA = a.orderedDate ? new Date(a.orderedDate).getTime() : 0;
+    const dateB = b.orderedDate ? new Date(b.orderedDate).getTime() : 0;
+    return dateB - dateA; // Descending order
   });
 
   // Add lab names to all orders

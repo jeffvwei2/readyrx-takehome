@@ -312,12 +312,15 @@ export class HL7Parser implements LabDataParser {
       // Try to find metric name using LOINC code first, then fall back to description
       let metricName = this.config.metricMapping[loincCode];
       
+      console.log(`HL7 Parser - LOINC Code: ${loincCode}, Description: ${description}, Mapped Name: ${metricName}`);
+      
       if (!metricName) {
         // If no LOINC code mapping, try to match by description
         const descriptionLower = description.toLowerCase();
         for (const [code, name] of Object.entries(this.config.metricMapping)) {
           if (name.toLowerCase().includes(descriptionLower) || descriptionLower.includes(name.toLowerCase())) {
             metricName = name;
+            console.log(`HL7 Parser - Found match by description: ${name}`);
             break;
           }
         }
@@ -328,6 +331,8 @@ export class HL7Parser implements LabDataParser {
         metricName = description || loincCode;
         console.warn(`No metric mapping found for LOINC code ${loincCode} (${description}), using description as fallback`);
       }
+      
+      console.log(`HL7 Parser - Final metric name: ${metricName}`);
       
       // Parse result value based on value type and create typed result
       let result: MetricResult;
@@ -453,11 +458,17 @@ export class HL7Parser implements LabDataParser {
   private extractOrderId(obrSegment: HL7Segment | undefined): number | null {
     if (!obrSegment) return null;
 
+    console.log('OBR segment fields:', obrSegment.fields);
+    console.log('OBR-2 (Placer Order Number):', obrSegment.fields[2]);
+    console.log('OBR-3 (Filler Order Number):', obrSegment.fields[3]);
+
     // OBR-2: Placer Order Number (most common)
     if (obrSegment.fields[2]) {
       const placerOrderNumber = obrSegment.fields[2];
+      console.log('Processing placer order number:', placerOrderNumber);
       const orderId = parseInt(placerOrderNumber);
       if (!isNaN(orderId)) {
+        console.log('Extracted order ID from OBR-2:', orderId);
         return orderId;
       }
     }
@@ -465,12 +476,15 @@ export class HL7Parser implements LabDataParser {
     // OBR-3: Filler Order Number (alternative)
     if (obrSegment.fields[3]) {
       const fillerOrderNumber = obrSegment.fields[3];
+      console.log('Processing filler order number:', fillerOrderNumber);
       const orderId = parseInt(fillerOrderNumber);
       if (!isNaN(orderId)) {
+        console.log('Extracted order ID from OBR-3:', orderId);
         return orderId;
       }
     }
 
+    console.log('No valid order ID found in OBR segment');
     return null;
   }
 

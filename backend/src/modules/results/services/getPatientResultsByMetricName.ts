@@ -1,34 +1,47 @@
 import { db } from '../../../config/firebase';
 import { PatientResult } from '../types/resultTypes';
+import { EncryptionService } from '../../../shared/encryption/encryptionService';
 
 export const getPatientResultsByMetricName = async (patientId: string, metricName: string): Promise<PatientResult[]> => {
   try {
     const resultsSnapshot = await db.collection('patientResults')
       .where('patientId', '==', patientId)
-      .where('metricName', '==', metricName)
-      .orderBy('resultDate', 'asc')
       .get();
     
     const results: PatientResult[] = [];
 
     resultsSnapshot.forEach(doc => {
       const data = doc.data();
-      results.push({
-        id: doc.id,
-        patientId: data.patientId,
-        metricId: data.metricId,
-        metricName: data.metricName,
-        result: data.result,
-        units: data.units,
-        labOrderId: data.labOrderId,
-        labTestId: data.labTestId,
-        labId: data.labId,
-        labName: data.labName,
-        orderId: data.orderId,
-        orderingProvider: data.orderingProvider,
-        resultDate: data.resultDate,
-        createdAt: data.createdAt
-      });
+      
+      // Decrypt sensitive data when reading
+      const decryptedData = EncryptionService.decryptLabResult(data);
+      
+      // Filter by metricName after decryption
+      if (decryptedData?.metricName === metricName) {
+        results.push({
+          id: doc.id,
+          patientId: decryptedData?.patientId,
+          metricId: decryptedData?.metricId,
+          metricName: decryptedData?.metricName,
+          result: decryptedData?.result,
+          units: decryptedData?.units,
+          labOrderId: decryptedData?.labOrderId,
+          labTestId: decryptedData?.labTestId,
+          labId: decryptedData?.labId,
+          labName: decryptedData?.labName,
+          orderId: decryptedData?.orderId,
+          orderingProvider: decryptedData?.orderingProvider,
+          resultDate: decryptedData?.resultDate,
+          createdAt: decryptedData?.createdAt
+        });
+      }
+    });
+
+    // Sort by resultDate in memory (handle null/undefined dates)
+    results.sort((a, b) => {
+      const dateA = a.resultDate ? new Date(a.resultDate).getTime() : 0;
+      const dateB = b.resultDate ? new Date(b.resultDate).getTime() : 0;
+      return dateA - dateB; // Ascending order for historical chart
     });
 
     return results;

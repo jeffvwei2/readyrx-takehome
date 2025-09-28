@@ -4,4 +4,6 @@ export { seedLabTests } from './seedLabTests';
 export { seedMetrics } from './seedMetrics';
 export { seedLabOrders } from './seedLabOrders';
 export { seedRequests } from './seedRequests';
+export { seedAuditLogs } from './seedAuditLogs';
+export { seedApiTokens } from './seedApiTokens';
 export { seedAll } from './seedAll';

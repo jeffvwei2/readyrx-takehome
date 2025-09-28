@@ -1,11 +1,11 @@
 import { db } from '../../../config/firebase';
 import { PatientResultsSummary, PatientMetricHistory } from '../types/resultTypes';
+import { EncryptionService } from '../../../shared/encryption/encryptionService';
 
 export const getPatientResultsSummary = async (patientId: string): Promise<PatientResultsSummary | null> => {
   try {
     const resultsSnapshot = await db.collection('patientResults')
       .where('patientId', '==', patientId)
-      .orderBy('resultDate', 'desc')
       .get();
     
     if (resultsSnapshot.empty) {
@@ -19,7 +19,15 @@ export const getPatientResultsSummary = async (patientId: string): Promise<Patie
     
     resultsSnapshot.forEach(doc => {
       const data = doc.data();
-      const resultDate = data.resultDate.toDate();
+      
+      // Decrypt sensitive data when reading
+      const decryptedData = EncryptionService.decryptLabResult(data);
+      
+      if (!decryptedData) {
+        return; // Skip if decryption fails
+      }
+      
+      const resultDate = decryptedData.resultDate ? new Date(decryptedData.resultDate) : new Date();
       
       if (!earliestDate || resultDate < earliestDate) {
         earliestDate = resultDate;
@@ -30,31 +38,31 @@ export const getPatientResultsSummary = async (patientId: string): Promise<Patie
       
       results.push({
         id: doc.id,
-        metricId: data.metricId,
-        metricName: data.metricName,
-        result: data.result,
-        resultDate: data.resultDate,
-        labName: data.labName,
-        orderingProvider: data.orderingProvider,
-        orderId: data.orderId
+        metricId: decryptedData.metricId,
+        metricName: decryptedData.metricName,
+        result: decryptedData.result,
+        resultDate: decryptedData.resultDate,
+        labName: decryptedData.labName,
+        orderingProvider: decryptedData.orderingProvider,
+        orderId: decryptedData.orderId
       });
       
       // Group by metric
-      if (!metricMap.has(data.metricId)) {
-        metricMap.set(data.metricId, {
-          metricId: data.metricId,
-          metricName: data.metricName,
+      if (!metricMap.has(decryptedData.metricId)) {
+        metricMap.set(decryptedData.metricId, {
+          metricId: decryptedData.metricId,
+          metricName: decryptedData.metricName,
           results: []
         });
       }
       
-      metricMap.get(data.metricId).results.push({
+      metricMap.get(decryptedData.metricId).results.push({
         id: doc.id,
-        result: data.result,
-        resultDate: data.resultDate,
-        labName: data.labName,
-        orderingProvider: data.orderingProvider,
-        orderId: data.orderId
+        result: decryptedData.result,
+        resultDate: decryptedData.resultDate,
+        labName: decryptedData.labName,
+        orderingProvider: decryptedData.orderingProvider,
+        orderId: decryptedData.orderId
       });
     });
     

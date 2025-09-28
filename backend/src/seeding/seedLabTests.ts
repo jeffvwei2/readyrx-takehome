@@ -23,7 +23,7 @@ export const seedLabTests = async (): Promise<void> => {
     ];
     const cmpMetricIds: string[] = [];
     for (const name of cmpMetrics) {
-      const metricDoc = await db.collection('metrics').where('name', '==', name).limit(1).get();
+        const metricDoc = await db.collection('metrics').where('name', '==', name).limit(1).get();
       if (!metricDoc.empty) {
         cmpMetricIds.push(metricDoc.docs[0].id);
       } else {
@@ -39,7 +39,7 @@ export const seedLabTests = async (): Promise<void> => {
     ];
     const cbcMetricIds: string[] = [];
     for (const name of cbcMetrics) {
-      const metricDoc = await db.collection('metrics').where('name', '==', name).limit(1).get();
+        const metricDoc = await db.collection('metrics').where('name', '==', name).limit(1).get();
       if (!metricDoc.empty) {
         cbcMetricIds.push(metricDoc.docs[0].id);
       } else {

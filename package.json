@@ -9,6 +9,7 @@
     "emulator": "./start-emulator.sh",
     "server": "cd backend && PORT=3001 npm run dev",
     "client": "cd frontend && npm start",
+    "seed": "cd backend && npm run seed",
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "build": "cd frontend && npm run build",
     "production": "USE_FIREBASE_PRODUCTION=true npm run dev",

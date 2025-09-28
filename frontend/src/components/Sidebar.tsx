@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PatientForm from './PatientForm';
 import PatientList from './PatientList';
 import LabOrderForm from './LabOrderForm';
+import TokenManager from './TokenManager';
 import { SidebarProps } from '../types';
 
 const Sidebar: React.FC<SidebarProps> = ({ onPatientSelect, onRefreshPatients }) => {
@@ -11,6 +12,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onPatientSelect, onRefreshPatients })
     <div className="w-80 bg-white shadow-lg h-screen overflow-y-auto">
       <div className="p-4 border-b border-gray-200">
         <h1 className="text-xl font-bold text-gray-800">ReadyRx</h1>
+      </div>
+      
+      {/* Token Manager */}
+      <div className="p-4 border-b border-gray-200">
+        <TokenManager />
       </div>
       
       {/* Tab Navigation */}

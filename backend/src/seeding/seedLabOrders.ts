@@ -311,7 +311,10 @@ export const seedLabOrders = async (): Promise<void> => {
     
     // Create patient results
     for (const patientResult of patientResults) {
-      await db.collection('patientResults').add(patientResult);
+      await db.collection('patientResults').add({
+        ...patientResult,
+        createdAt: new Date(),
+      });
     }
     
     console.log(`✅ ${labOrders.length} lab orders created successfully`);

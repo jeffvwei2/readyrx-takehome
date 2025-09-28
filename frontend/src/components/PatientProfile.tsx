@@ -25,6 +25,15 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
     }
   }, [patient.id]);
 
+  const refreshPatientProfile = useCallback(async () => {
+    // Refresh lab orders
+    await fetchLabOrders();
+    
+    // Trigger a custom event to refresh metrics dashboard components
+    const refreshEvent = new CustomEvent('refreshMetricsDashboard');
+    window.dispatchEvent(refreshEvent);
+  }, [fetchLabOrders]);
+
   useEffect(() => {
     fetchLabOrders();
   }, [fetchLabOrders]);
@@ -56,7 +65,7 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
             <div className="flex items-center space-x-4">
               <PatientUpload 
                 patient={patient}
-                onUploadComplete={fetchLabOrders}
+                onUploadComplete={refreshPatientProfile}
               />
               <div className="text-right">
                 <div className="text-sm text-gray-500">

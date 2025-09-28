@@ -4,7 +4,7 @@ import { ParserType } from '../services/parserFactory';
 
 export const parseLabData = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { labOrderId, labTestId, parserType, isNewOrder } = req.body;
+    const { labOrderId, labTestId, parserType, patientId } = req.body;
     const labData = req.body.data;
     
     if (!labData) {
@@ -13,7 +13,8 @@ export const parseLabData = async (req: Request, res: Response): Promise<void> =
     }
     
     // For file uploads, we just parse the data without saving results
-    if (!labOrderId || !labTestId) {
+    // Only do parsing-only if BOTH labOrderId AND labTestId are empty
+    if (!labOrderId && !labTestId) {
       const parseResult = await ParserService.parseLabData(
         labData,
         '', // Empty labOrderId for parsing only
@@ -25,23 +26,14 @@ export const parseLabData = async (req: Request, res: Response): Promise<void> =
       return;
     }
     
-    // Use different method based on whether this is a new order or existing order
-    let parseResult;
-    if (isNewOrder) {
-      parseResult = await ParserService.parseAndSaveResultsForNewOrder(
-        labData,
-        labOrderId,
-        labTestId,
-        parserType as ParserType
-      );
-    } else {
-      parseResult = await ParserService.parseAndSaveResults(
-        labData,
-        labOrderId,
-        labTestId,
-        parserType as ParserType
-      );
-    }
+    // Use the unified parseAndSaveResults method for all cases
+    const parseResult = await ParserService.parseAndSaveResults(
+      labData,
+      labOrderId,
+      labTestId,
+      parserType as ParserType,
+      patientId
+    );
     
     res.json(parseResult);
   } catch (error) {

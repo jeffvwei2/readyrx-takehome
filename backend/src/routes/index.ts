@@ -8,11 +8,17 @@ import { labOrderRoutes } from '../modules/labOrders';
 import { resultRoutes } from '../modules/results';
 import { parserRoutes } from '../modules/parsers';
 import { requestRoutes } from '../modules/requests';
+import { authRoutes } from '../shared/auth/authRoutes';
+import { authenticateToken } from '../shared/auth/authMiddleware';
 
 const router = Router();
 
-// Health routes
+// Public routes (no authentication required)
+router.use('/auth', authRoutes);
 router.use('/health', healthRoutes);
+
+// Protected routes (authentication required)
+router.use(authenticateToken);
 
 // Patient routes
 router.use('/patients', patientRoutes);

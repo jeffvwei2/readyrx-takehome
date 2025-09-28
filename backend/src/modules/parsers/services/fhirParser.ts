@@ -106,10 +106,15 @@ export class FHIRParser implements LabDataParser {
       const errors: string[] = [];
       const warnings: string[] = [];
       
+      console.log('FHIR parseForFileUpload called');
+      console.log('FHIR bundle entries:', fhirBundle.entry?.length || 0);
+      
       // Extract order ID from FHIR bundle
       const orderId = this.extractOrderId(fhirBundle);
       const orderingProvider = this.extractOrderingProvider(fhirBundle);
       const labName = this.extractLabName(fhirBundle);
+      
+      console.log('Extracted FHIR data:', { orderId, orderingProvider, labName });
       
       // Extract observations from FHIR bundle
       const observations: LabObservation[] = [];
@@ -124,6 +129,8 @@ export class FHIRParser implements LabDataParser {
             const value = this.extractValue(observation);
             const unit = this.extractUnit(observation);
             const interpretation = this.extractInterpretation(observation);
+            
+            console.log(`Processing FHIR observation: ${metricName} = ${value} ${unit}`);
             
             if (metricName && value !== null) {
               observations.push({
@@ -142,6 +149,8 @@ export class FHIRParser implements LabDataParser {
           }
         }
       }
+      
+      console.log(`Created ${observations.length} observations from FHIR file`);
       
       // Create a lab report for file upload with extracted order ID
       const labReport: LabReport = {

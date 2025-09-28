@@ -5,7 +5,7 @@ export const seedTestPatient = async (): Promise<void> => {
   try {
     console.log('🌱 Seeding test patient...');
     
-    // Check if test patient already exists
+    // Check if test patient already exists using encrypted db
     const existingPatients = await db.collection('patients')
       .where('email', '==', 'test@readyrx.com')
       .limit(1)

@@ -71,6 +71,74 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
     fetchHistoricalData();
   }, [patientId, metricName]);
 
+  // Listen for refresh events
+  useEffect(() => {
+    const handleRefresh = () => {
+      // Re-trigger the data fetch
+      const fetchHistoricalData = async () => {
+        if (!metricName) {
+          setChartData([]);
+          setUnits('');
+          setLoading(false);
+          return;
+        }
+
+        try {
+          setLoading(true);
+          const response = await axios.get<PatientResult[]>(`/api/results?patientId=${patientId}&metricName=${metricName}`);
+          const results = response.data;
+
+          const transformedData: ChartDataPoint[] = results
+            .map((result: PatientResult): ChartDataPoint | null => {
+              let value: number;
+              if (typeof result.result === 'number') {
+                value = result.result;
+              } else if (result.result && typeof result.result === 'object' && result.result.value) {
+                value = result.result.value;
+              } else {
+                return null;
+              }
+
+              const resultDate = convertFirestoreTimestamp(result.resultDate);
+
+              return {
+                date: resultDate.toLocaleDateString(),
+                value: value,
+                orderId: result.orderId,
+                labName: result.labName,
+                provider: result.orderingProvider,
+                units: result.units,
+                fullDate: resultDate
+              };
+            })
+            .filter((item): item is ChartDataPoint => item !== null)
+            .sort((a, b) => {
+              const dateA = a.fullDate || new Date(a.date);
+              const dateB = b.fullDate || new Date(b.date);
+              return dateA.getTime() - dateB.getTime();
+            });
+
+          setChartData(transformedData);
+          if (transformedData.length > 0) {
+            setUnits(transformedData[0].units || '');
+          }
+        } catch (error) {
+          console.error('Error fetching historical data:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchHistoricalData();
+    };
+
+    window.addEventListener('refreshMetricsDashboard', handleRefresh);
+    
+    return () => {
+      window.removeEventListener('refreshMetricsDashboard', handleRefresh);
+    };
+  }, [patientId, metricName]);
+
   const formatTooltip = (value: number, name: string, props: any) => {
     const data = props.payload;
     return [
