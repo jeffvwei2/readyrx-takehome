@@ -1,0 +1,303 @@
+{
+  "resourceType": "Bundle",
+  "id": "test-lab-results-bundle",
+  "type": "collection",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "total": 6,
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:obs-glucose",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-glucose",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33747-0",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/test-patient"
+        },
+        "effectiveDateTime": "2024-01-15T10:30:00Z",
+        "valueQuantity": {
+          "value": 98,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-wbc",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-wbc",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33747-1",
+              "display": "White Blood Cell Count"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/test-patient"
+        },
+        "effectiveDateTime": "2024-01-15T10:30:00Z",
+        "valueQuantity": {
+          "value": 7.8,
+          "unit": "10*3/uL",
+          "system": "http://unitsofmeasure.org",
+          "code": "10*3/uL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-rbc",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-rbc",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33747-2",
+              "display": "Red Blood Cell Count"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/test-patient"
+        },
+        "effectiveDateTime": "2024-01-15T10:30:00Z",
+        "valueQuantity": {
+          "value": 4.6,
+          "unit": "10*6/uL",
+          "system": "http://unitsofmeasure.org",
+          "code": "10*6/uL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-hemoglobin",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-hemoglobin",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33747-3",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/test-patient"
+        },
+        "effectiveDateTime": "2024-01-15T10:30:00Z",
+        "valueQuantity": {
+          "value": 14.8,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-sodium",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-sodium",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33747-4",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/test-patient"
+        },
+        "effectiveDateTime": "2024-01-15T10:30:00Z",
+        "valueQuantity": {
+          "value": 142,
+          "unit": "mEq/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mEq/L"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:obs-creatinine",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-creatinine",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33747-5",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/test-patient"
+        },
+        "effectiveDateTime": "2024-01-15T10:30:00Z",
+        "valueQuantity": {
+          "value": 0.95,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "N",
+                "display": "Normal"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,29 +1,54 @@
-import { LabDataParser, ParseResult, FHIRBundle, FHIRObservation, LabReport, LabObservation, CreatePatientResultRequest } from '../types/parserTypes';
+import { LabDataParser, ParseResult, FHIRBundle, FHIRObservation, LabReport, LabObservation } from '../types/parserTypes';
 import { createNumericResult, createDescriptorResult, createBooleanResult, MetricResult } from '../../metrics/types/metricTypes';
+import { CreatePatientResultRequest } from '../../results/types/resultTypes';
 import { db } from '../../../config/firebase';
 
 export class FHIRParser implements LabDataParser {
   private config = {
     metricMapping: {
-      '33747-0': 'Blood Glucose',
+      // CMP (Comprehensive Metabolic Panel) LOINC codes
+      '24323-8': 'Comprehensive Metabolic Panel',
+      '33747-0': 'Glucose',
+      '2951-2': 'Sodium',
+      '2823-3': 'Potassium',
+      '2075-0': 'Chloride',
+      '2028-9': 'Carbon Dioxide (CO2)',
+      '3094-0': 'Blood Urea Nitrogen (BUN)',
+      '2160-0': 'Creatinine',
+      '2885-2': 'Total Protein',
+      '1751-7': 'Albumin',
+      '1968-7': 'Total Bilirubin',
+      '1742-6': 'Alanine Aminotransferase (ALT)',
+      '1920-8': 'Aspartate Aminotransferase (AST)',
+      '6768-6': 'Alkaline Phosphatase (ALP)',
+      '17861-6': 'Calcium',
+      
+      // CBC (Complete Blood Count) LOINC codes
+      '58410-2': 'Complete Blood Count with Differential',
+      '33747-1': 'White Blood Cell Count (WBC)',
+      '789-8': 'Red Blood Cell Count (RBC)',
+      '718-7': 'Hemoglobin',
+      '4544-3': 'Hematocrit',
+      '785-6': 'Mean Corpuscular Volume (MCV)',
+      '786-4': 'Mean Corpuscular Hemoglobin (MCH)',
+      '787-2': 'Mean Corpuscular Hemoglobin Concentration (MCHC)',
+      '777-3': 'Platelet Count',
+      '770-8': 'Neutrophils',
+      '736-9': 'Lymphocytes',
+      '5905-5': 'Monocytes',
+      '713-8': 'Eosinophils',
+      '706-2': 'Basophils',
+      
+      // Additional common LOINC codes
       '2093-3': 'Total Cholesterol',
       '2085-9': 'HDL Cholesterol',
       '2089-1': 'LDL Cholesterol',
       '2571-8': 'Triglycerides',
       '4548-4': 'Hemoglobin A1C',
-      '2160-0': 'Creatinine',
-      '3094-0': 'Blood Urea Nitrogen',
-      '1742-6': 'Alanine Aminotransferase',
-      '1920-8': 'Aspartate Aminotransferase',
       '3016-3': 'Thyroid Stimulating Hormone',
       '3024-7': 'Free T4',
-      '3026-2': 'Free T3',
-      '33747-0': 'White Blood Cell Count',
-      '789-8': 'Red Blood Cell Count',
-      '718-7': 'Hemoglobin',
-      '4544-3': 'Hematocrit',
-      '777-3': 'Platelet Count'
-    },
+      '3026-2': 'Free T3'
+    } as { [key: string]: string },
     defaultUnit: '',
     dateFormat: 'ISO8601',
     timezone: 'UTC'
@@ -36,6 +61,11 @@ export class FHIRParser implements LabDataParser {
       
       // Parse FHIR bundle
       const fhirBundle = this.parseFHIRBundle(data);
+      
+      // If no labOrderId provided, use file upload parsing
+      if (!labOrderId || !labTestId) {
+        return this.parseForFileUpload(fhirBundle);
+      }
       
       // Extract lab report data
       const labReport = await this.extractLabReport(fhirBundle, labOrderId, labTestId);
@@ -60,6 +90,82 @@ export class FHIRParser implements LabDataParser {
         success: false,
         results: [],
         errors: [`FHIR parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
+        warnings: []
+      };
+    }
+  }
+
+  private parseForFileUpload(fhirBundle: FHIRBundle): ParseResult {
+    try {
+      const errors: string[] = [];
+      const warnings: string[] = [];
+      
+      // Extract order ID from FHIR bundle
+      const orderId = this.extractOrderId(fhirBundle);
+      const orderingProvider = this.extractOrderingProvider(fhirBundle);
+      const labName = this.extractLabName(fhirBundle);
+      
+      // Extract observations from FHIR bundle
+      const observations: LabObservation[] = [];
+      
+      if (fhirBundle.entry) {
+        for (const entry of fhirBundle.entry) {
+          if (entry.resource && entry.resource.resourceType === 'Observation') {
+            const observation = entry.resource as FHIRObservation;
+            
+            // Extract observation data
+            const metricName = this.extractMetricName(observation);
+            const value = this.extractValue(observation);
+            const unit = this.extractUnit(observation);
+            const interpretation = this.extractInterpretation(observation);
+            
+            if (metricName && value !== null) {
+              observations.push({
+                metricName,
+                result: {
+                  type: 'numeric',
+                  value: value,
+                  status: (interpretation === 'N' ? 'normal' : 'high') as 'normal' | 'high' | 'low' | 'critical',
+                  interpretation: interpretation || 'N'
+                },
+                unit: unit || '',
+                referenceRange: this.extractReferenceRange(observation) || undefined,
+                status: 'F' // Final
+              });
+            }
+          }
+        }
+      }
+      
+      // Create a lab report for file upload with extracted order ID
+      const labReport: LabReport = {
+        patientId: '', // Will be set when creating lab order
+        labName: labName || 'FHIR Lab',
+        orderId: orderId || 0, // Use extracted order ID or default to 0
+        orderingProvider: orderingProvider || 'File Upload',
+        reportDate: new Date(),
+        observations
+      };
+      
+      if (orderId) {
+        console.log(`Extracted order ID from FHIR: ${orderId}`);
+      } else {
+        warnings.push('No order ID found in FHIR bundle, will generate new one');
+      }
+      
+      return {
+        success: true,
+        results: [],
+        errors,
+        warnings,
+        labReport // Include the parsed lab report
+      };
+    } catch (error) {
+      console.error('Error parsing FHIR for file upload:', error);
+      return {
+        success: false,
+        results: [],
+        errors: [error instanceof Error ? error.message : 'Unknown parsing error'],
         warnings: []
       };
     }
@@ -170,20 +276,22 @@ export class FHIRParser implements LabDataParser {
         status = 'normal';
       }
       
-      if (fhirObservation.valueQuantity) {
-        result = createNumericResult(fhirObservation.valueQuantity.value, status);
+      if (fhirObservation.valueQuantity && fhirObservation.valueQuantity.value !== undefined) {
+        result = createNumericResult(fhirObservation.valueQuantity.value, status as 'normal' | 'high' | 'low' | 'critical');
         unit = fhirObservation.valueQuantity.unit;
       } else if (fhirObservation.valueString) {
-        result = createDescriptorResult(fhirObservation.valueString, status);
+        result = createDescriptorResult(fhirObservation.valueString, status as 'normal' | 'abnormal' | 'positive' | 'negative');
       } else if (fhirObservation.valueBoolean !== undefined) {
-        result = createBooleanResult(fhirObservation.valueBoolean, status);
+        result = createBooleanResult(fhirObservation.valueBoolean, status as 'positive' | 'negative');
       } else if (fhirObservation.valueInteger !== undefined) {
-        result = createNumericResult(fhirObservation.valueInteger, status);
+        result = createNumericResult(fhirObservation.valueInteger, status as 'normal' | 'high' | 'low' | 'critical');
       } else if (fhirObservation.valueCodeableConcept) {
         const codedValue = fhirObservation.valueCodeableConcept.text || 
                           fhirObservation.valueCodeableConcept.coding?.[0]?.display ||
                           fhirObservation.valueCodeableConcept.coding?.[0]?.code;
-        result = createDescriptorResult(codedValue, status);
+        if (codedValue) {
+          result = createDescriptorResult(codedValue, status as 'normal' | 'abnormal' | 'positive' | 'negative');
+        }
       }
       
       if (result === null || result === undefined) {
@@ -259,6 +367,177 @@ export class FHIRParser implements LabDataParser {
     }
     
     return results;
+  }
+
+  private extractMetricName(observation: FHIRObservation): string | null {
+    if (observation.code && observation.code.coding && observation.code.coding.length > 0) {
+      const coding = observation.code.coding[0];
+      return coding.display || coding.code || null;
+    }
+    return null;
+  }
+
+  private extractValue(observation: FHIRObservation): number | null {
+    if (observation.valueQuantity) {
+      return observation.valueQuantity.value || null;
+    }
+    return null;
+  }
+
+  private extractUnit(observation: FHIRObservation): string | null {
+    if (observation.valueQuantity && observation.valueQuantity.unit) {
+      return observation.valueQuantity.unit;
+    }
+    return null;
+  }
+
+  private extractInterpretation(observation: FHIRObservation): string | null {
+    if (observation.interpretation && observation.interpretation.length > 0) {
+      const interpretation = observation.interpretation[0];
+      if (interpretation.coding && interpretation.coding.length > 0) {
+        return interpretation.coding[0].code || null;
+      }
+    }
+    return null;
+  }
+
+  private extractReferenceRange(observation: FHIRObservation): string | null {
+    if (observation.referenceRange && observation.referenceRange.length > 0) {
+      const refRange = observation.referenceRange[0];
+      if (refRange.low && refRange.high) {
+        return `${refRange.low.value}${refRange.low.unit || ''} - ${refRange.high.value}${refRange.high.unit || ''}`;
+      } else if (refRange.text) {
+        return refRange.text;
+      }
+    }
+    return null;
+  }
+
+  private extractOrderId(fhirBundle: FHIRBundle): number | null {
+    if (!fhirBundle.entry) return null;
+
+    // Look for ServiceRequest resources first (most common for lab orders)
+    for (const entry of fhirBundle.entry) {
+      if (entry.resource && entry.resource.resourceType === 'ServiceRequest') {
+        const serviceRequest = entry.resource as any;
+        if (serviceRequest.identifier && serviceRequest.identifier.length > 0) {
+          const identifier = serviceRequest.identifier[0];
+          if (identifier.value) {
+            const orderId = parseInt(identifier.value);
+            if (!isNaN(orderId)) {
+              return orderId;
+            }
+          }
+        }
+      }
+    }
+
+    // Look for DiagnosticReport resources
+    for (const entry of fhirBundle.entry) {
+      if (entry.resource && entry.resource.resourceType === 'DiagnosticReport') {
+        const diagnosticReport = entry.resource as any;
+        if (diagnosticReport.identifier && diagnosticReport.identifier.length > 0) {
+          const identifier = diagnosticReport.identifier[0];
+          if (identifier.value) {
+            const orderId = parseInt(identifier.value);
+            if (!isNaN(orderId)) {
+              return orderId;
+            }
+          }
+        }
+      }
+    }
+
+    // Look for Observation resources with basedOn references
+    for (const entry of fhirBundle.entry) {
+      if (entry.resource && entry.resource.resourceType === 'Observation') {
+        const observation = entry.resource as any;
+        if (observation.basedOn && observation.basedOn.length > 0) {
+          const basedOn = observation.basedOn[0];
+          if (basedOn.identifier && basedOn.identifier.value) {
+            const orderId = parseInt(basedOn.identifier.value);
+            if (!isNaN(orderId)) {
+              return orderId;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private extractOrderingProvider(fhirBundle: FHIRBundle): string | null {
+    if (!fhirBundle.entry) return null;
+
+    // Look for ServiceRequest resources
+    for (const entry of fhirBundle.entry) {
+      if (entry.resource && entry.resource.resourceType === 'ServiceRequest') {
+        const serviceRequest = entry.resource as any;
+        if (serviceRequest.requester && serviceRequest.requester.display) {
+          return serviceRequest.requester.display;
+        }
+        if (serviceRequest.requester && serviceRequest.requester.reference) {
+          // Try to resolve the practitioner reference
+          const practitionerRef = serviceRequest.requester.reference;
+          for (const practitionerEntry of fhirBundle.entry) {
+            if (practitionerEntry.resource && 
+                practitionerEntry.resource.resourceType === 'Practitioner' &&
+                practitionerEntry.fullUrl === practitionerRef) {
+              const practitioner = practitionerEntry.resource as any;
+              if (practitioner.name && practitioner.name.length > 0) {
+                const name = practitioner.name[0];
+                return `${name.given?.join(' ') || ''} ${name.family || ''}`.trim();
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Look for DiagnosticReport resources
+    for (const entry of fhirBundle.entry) {
+      if (entry.resource && entry.resource.resourceType === 'DiagnosticReport') {
+        const diagnosticReport = entry.resource as any;
+        if (diagnosticReport.performer && diagnosticReport.performer.length > 0) {
+          const performer = diagnosticReport.performer[0];
+          if (performer.display) {
+            return performer.display;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private extractLabName(fhirBundle: FHIRBundle): string | null {
+    if (!fhirBundle.entry) return null;
+
+    // Look for DiagnosticReport resources
+    for (const entry of fhirBundle.entry) {
+      if (entry.resource && entry.resource.resourceType === 'DiagnosticReport') {
+        const diagnosticReport = entry.resource as any;
+        if (diagnosticReport.performer && diagnosticReport.performer.length > 0) {
+          const performer = diagnosticReport.performer[0];
+          if (performer.display) {
+            return performer.display;
+          }
+        }
+      }
+    }
+
+    // Look for Organization resources
+    for (const entry of fhirBundle.entry) {
+      if (entry.resource && entry.resource.resourceType === 'Organization') {
+        const organization = entry.resource as any;
+        if (organization.name) {
+          return organization.name;
+        }
+      }
+    }
+
+    return null;
   }
 }
 

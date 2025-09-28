@@ -2,12 +2,14 @@ export interface LabTest {
   id: string;
   name: string;
   metricIds: string[];
+  codes: string[]; // LOINC codes
   createdAt: Date;
 }
 
 export interface CreateLabTestRequest {
   name: string;
   metricIds?: string[];
+  codes?: string[]; // LOINC codes
 }
 
 export interface CreateLabTestResponse {
@@ -18,6 +20,7 @@ export interface CreateLabTestResponse {
 export interface UpdateLabTestRequest {
   name?: string;
   metricIds?: string[];
+  codes?: string[]; // LOINC codes
 }
 
 // Extended interface for responses that include full metric data

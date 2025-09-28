@@ -1,4 +1,5 @@
-import { LabDataParser, ParseResult, HL7Message, HL7Segment, HL7OBXSegment, LabReport, LabObservation, CreatePatientResultRequest } from '../types/parserTypes';
+import { LabDataParser, ParseResult, HL7Message, HL7Segment, HL7OBXSegment, LabReport, LabObservation } from '../types/parserTypes';
+import { CreatePatientResultRequest } from '../../results/types/resultTypes';
 import { createNumericResult, createDescriptorResult, MetricResult } from '../../metrics/types/metricTypes';
 import { db } from '../../../config/firebase';
 
@@ -23,7 +24,7 @@ export class HL7Parser implements LabDataParser {
       'HGB': 'Hemoglobin',
       'HCT': 'Hematocrit',
       'PLT': 'Platelet Count'
-    },
+    } as { [key: string]: string },
     defaultUnit: '',
     dateFormat: 'YYYYMMDDHHMMSS',
     timezone: 'UTC'
@@ -36,6 +37,11 @@ export class HL7Parser implements LabDataParser {
       
       // Parse HL7 message
       const hl7Message = this.parseHL7Message(data);
+      
+      // If no labOrderId provided, use file upload parsing
+      if (!labOrderId || !labTestId) {
+        return this.parseForFileUpload(hl7Message);
+      }
       
       // Extract lab report data
       const labReport = await this.extractLabReport(hl7Message, labOrderId, labTestId);
@@ -60,6 +66,85 @@ export class HL7Parser implements LabDataParser {
         success: false,
         results: [],
         errors: [`HL7 parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
+        warnings: []
+      };
+    }
+  }
+
+  private parseForFileUpload(hl7Message: HL7Message): ParseResult {
+    try {
+      const errors: string[] = [];
+      const warnings: string[] = [];
+      
+      // Debug: Log available segments
+      console.log('Available segments:', hl7Message.segments.map(s => s.segmentType));
+      
+      // Extract basic lab report info from HL7 message
+      const mshSegment = hl7Message.segments.find(s => s.segmentType === 'MSH');
+      const obrSegment = hl7Message.segments.find(s => s.segmentType === 'OBR');
+      
+      if (!mshSegment) {
+        errors.push('Missing required MSH segment');
+        return { success: false, results: [], errors, warnings };
+      }
+      
+      if (!obrSegment) {
+        warnings.push('No OBR segment found, using default test name');
+      }
+      
+      // Extract order ID from OBR segment (OBR-2: Placer Order Number, OBR-3: Filler Order Number)
+      const orderId = this.extractOrderId(obrSegment);
+      const orderingProvider = this.extractOrderingProvider(obrSegment);
+      
+      // Extract lab name from MSH segment
+      const labName = mshSegment.fields[3] || 'Unknown Lab';
+      
+      // Extract test name from OBR segment
+      const testName = obrSegment?.fields[4]?.split('^')[0] || 'Unknown Test';
+      
+      // Extract observations from OBX segments
+      const observations: LabObservation[] = [];
+      const obxSegments = hl7Message.segments.filter(s => s.segmentType === 'OBX');
+      
+      for (const obxSegment of obxSegments) {
+        const obx = this.parseOBXSegment(obxSegment);
+        if (obx && obx.observationResultStatus === 'F') { // Final results only
+          const observation = this.convertOBXToObservation(obx);
+          if (observation) {
+            observations.push(observation);
+          }
+        }
+      }
+      
+      // Create a lab report for file upload with extracted order ID
+      const labReport: LabReport = {
+        patientId: '', // Will be set when creating lab order
+        labName,
+        orderId: orderId || 0, // Use extracted order ID or default to 0
+        orderingProvider: orderingProvider || 'File Upload',
+        reportDate: new Date(),
+        observations
+      };
+      
+      if (orderId) {
+        console.log(`Extracted order ID from HL7: ${orderId}`);
+      } else {
+        warnings.push('No order ID found in HL7 message, will generate new one');
+      }
+      
+      return {
+        success: true,
+        results: [],
+        errors,
+        warnings,
+        labReport // Include the parsed lab report
+      };
+    } catch (error) {
+      console.error('Error parsing HL7 for file upload:', error);
+      return {
+        success: false,
+        results: [],
+        errors: [error instanceof Error ? error.message : 'Unknown parsing error'],
         warnings: []
       };
     }
@@ -207,23 +292,33 @@ export class HL7Parser implements LabDataParser {
           if (isNaN(numericValue)) {
             return null;
           }
-          result = createNumericResult(numericValue, status, obx.abnormalFlags);
+          // Convert status to numeric result compatible status
+          const numericStatus = status === 'abnormal' ? 'normal' : status as 'normal' | 'high' | 'low' | 'critical';
+          result = createNumericResult(numericValue, numericStatus, obx.abnormalFlags);
           break;
         case 'ST': // String
         case 'TX': // Text
-          result = createDescriptorResult(obx.observationValue, status);
+          // Convert status to descriptor result compatible status
+          const descriptorStatus = status === 'high' || status === 'low' || status === 'critical' ? 'abnormal' : status as 'normal' | 'abnormal' | 'positive' | 'negative';
+          result = createDescriptorResult(obx.observationValue, descriptorStatus);
           break;
         case 'CE': // Coded Entry
           const codedValue = obx.observationValue.split('^')[1] || obx.observationValue;
-          result = createDescriptorResult(codedValue, status);
+          // Convert status to descriptor result compatible status
+          const codedStatus = status === 'high' || status === 'low' || status === 'critical' ? 'abnormal' : status as 'normal' | 'abnormal' | 'positive' | 'negative';
+          result = createDescriptorResult(codedValue, codedStatus);
           break;
         default:
           // For unknown types, try to parse as numeric first, then fall back to string
           const parsedValue = parseFloat(obx.observationValue);
           if (!isNaN(parsedValue)) {
-            result = createNumericResult(parsedValue, status, obx.abnormalFlags);
+            // Convert status to numeric result compatible status
+            const defaultNumericStatus = status === 'abnormal' ? 'normal' : status as 'normal' | 'high' | 'low' | 'critical';
+            result = createNumericResult(parsedValue, defaultNumericStatus, obx.abnormalFlags);
           } else {
-            result = createDescriptorResult(obx.observationValue, status);
+            // Convert status to descriptor result compatible status
+            const defaultDescriptorStatus = status === 'high' || status === 'low' || status === 'critical' ? 'abnormal' : status as 'normal' | 'abnormal' | 'positive' | 'negative';
+            result = createDescriptorResult(obx.observationValue, defaultDescriptorStatus);
           }
       }
       
@@ -297,6 +392,50 @@ export class HL7Parser implements LabDataParser {
       console.error('Error parsing HL7 date:', error);
       return new Date();
     }
+  }
+
+  private extractOrderId(obrSegment: HL7Segment | undefined): number | null {
+    if (!obrSegment) return null;
+
+    // OBR-2: Placer Order Number (most common)
+    if (obrSegment.fields[2]) {
+      const placerOrderNumber = obrSegment.fields[2];
+      const orderId = parseInt(placerOrderNumber);
+      if (!isNaN(orderId)) {
+        return orderId;
+      }
+    }
+
+    // OBR-3: Filler Order Number (alternative)
+    if (obrSegment.fields[3]) {
+      const fillerOrderNumber = obrSegment.fields[3];
+      const orderId = parseInt(fillerOrderNumber);
+      if (!isNaN(orderId)) {
+        return orderId;
+      }
+    }
+
+    return null;
+  }
+
+  private extractOrderingProvider(obrSegment: HL7Segment | undefined): string | null {
+    if (!obrSegment) return null;
+
+    // OBR-16: Ordering Provider (most common)
+    if (obrSegment.fields[16]) {
+      const orderingProviderField = obrSegment.fields[16];
+      // HL7 format: ID^Lastname^Firstname^Middlename^Suffix^Prefix^Degree^Source Table^ID^Lastname^Firstname^Middlename^Suffix^Prefix^Degree
+      const parts = orderingProviderField.split('^');
+      if (parts.length >= 3) {
+        const firstName = parts[2] || '';
+        const lastName = parts[1] || '';
+        return `${firstName} ${lastName}`.trim();
+      }
+      // If it's just a simple name without separators
+      return orderingProviderField;
+    }
+
+    return null;
   }
 }
 

@@ -5,14 +5,18 @@ import { addLabNamesToOrders } from './labNameResolver';
 // Temporary type for lab order data before adding lab names
 type LabOrderData = Omit<LabOrder, 'labName'>;
 
-export const getAllLabOrders = async (): Promise<LabOrder[]> => {
-  const labOrdersSnapshot = await db.collection('labOrders').get();
-  const labOrders: LabOrderData[] = [];
+export const getLabOrdersByPatientId = async (patientId: string): Promise<LabOrder[]> => {
+  const labOrdersSnapshot = await db.collection('labOrders')
+    .where('patientId', '==', patientId)
+    .orderBy('orderedDate', 'desc')
+    .get();
   
+  const labOrders: LabOrderData[] = [];
+
   labOrdersSnapshot.forEach(doc => {
     const data = doc.data();
-    labOrders.push({ 
-      id: doc.id, 
+    labOrders.push({
+      id: doc.id,
       name: data.name,
       patientId: data.patientId,
       orderId: data.orderId,
@@ -30,6 +34,6 @@ export const getAllLabOrders = async (): Promise<LabOrder[]> => {
 
   // Add lab names to all orders
   const labOrdersWithNames = await addLabNamesToOrders(labOrders);
-  
+
   return labOrdersWithNames;
 };

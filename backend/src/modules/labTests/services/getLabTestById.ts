@@ -12,7 +12,8 @@ export const getLabTestById = async (id: string): Promise<LabTest | null> => {
   return {
     id: labTestDoc.id,
     name: data?.name,
-    biomarkerIds: data?.biomarkerIds || [],
+    metricIds: data?.metricIds || data?.biomarkerIds || [],
+    codes: data?.codes || [],
     createdAt: data?.createdAt
   };
 };

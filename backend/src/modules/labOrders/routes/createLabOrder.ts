@@ -5,7 +5,7 @@ import { validateLabOrderInput, sanitizeInput } from '../../../shared/utils/vali
 
 export const createLabOrder = async (req: Request<{}, CreateLabOrderResponse, CreateLabOrderRequest>, res: Response): Promise<void> => {
   try {
-    const { name, patientId, orderId, labId, labTestId, orderingProvider } = req.body;
+    const { name, patientId, orderId, labId, labTestId, orderingProvider, status, completedDate } = req.body;
     
     // Validate input
     const validation = validateLabOrderInput({ name, patientId, orderId, labId, labTestId, orderingProvider });
@@ -24,7 +24,9 @@ export const createLabOrder = async (req: Request<{}, CreateLabOrderResponse, Cr
       orderId,
       labId,
       labTestId,
-      sanitizedOrderingProvider
+      sanitizedOrderingProvider,
+      status,
+      completedDate
     );
     res.json({ id: labOrderId, message: 'Lab order created successfully' });
   } catch (error) {

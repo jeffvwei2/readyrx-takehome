@@ -4,6 +4,7 @@ import { getResultById as getResultByIdService } from './getResultById';
 import { updateResult as updateResultService } from './updateResult';
 import { deleteResult as deleteResultService } from './deleteResult';
 import { getPatientResults as getPatientResultsService } from './getPatientResults';
+import { getPatientResultsByMetricName as getPatientResultsByMetricNameService } from './getPatientResultsByMetricName';
 import { getPatientMetricHistory as getPatientMetricHistoryService } from './getPatientMetricHistory';
 import { getPatientResultsSummary as getPatientResultsSummaryService } from './getPatientResultsSummary';
 import { getPatientResultsByDateRange as getPatientResultsByDateRangeService } from './getPatientResultsByDateRange';
@@ -34,6 +35,10 @@ export class ResultService {
   // Patient-centric queries
   static async getPatientResults(patientId: string) {
     return getPatientResultsService(patientId);
+  }
+
+  static async getPatientResultsByMetricName(patientId: string, metricName: string) {
+    return getPatientResultsByMetricNameService(patientId, metricName);
   }
 
   static async getPatientMetricHistory(patientId: string, metricId: string) {

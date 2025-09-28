@@ -10,7 +10,8 @@ export const getAllLabTests = async (): Promise<LabTest[]> => {
     labTests.push({ 
       id: doc.id, 
       name: data.name,
-      biomarkerIds: data.biomarkerIds || [],
+      metricIds: data.metricIds || data.biomarkerIds || [], // Support both old and new field names
+      codes: data.codes || [], // Include LOINC codes
       createdAt: data.createdAt
     });
   });

@@ -5,10 +5,10 @@ import { validateLabTestInput, sanitizeInput } from '../../../shared/utils/valid
 
 export const createLabTest = async (req: Request<{}, CreateLabTestResponse, CreateLabTestRequest>, res: Response): Promise<void> => {
   try {
-    const { name, biomarkerIds = [] } = req.body;
+    const { name, metricIds = [], codes = [] } = req.body;
     
     // Validate input
-    const validation = validateLabTestInput({ name, biomarkerIds });
+    const validation = validateLabTestInput({ name, metricIds });
     if (!validation.isValid) {
       res.status(400).json({ error: 'Validation failed', details: validation.errors });
       return;
@@ -17,7 +17,7 @@ export const createLabTest = async (req: Request<{}, CreateLabTestResponse, Crea
     // Sanitize input
     const sanitizedName = sanitizeInput(name);
     
-    const labTestId = await LabTestService.createLabTest(sanitizedName, biomarkerIds);
+    const labTestId = await LabTestService.createLabTest(sanitizedName, metricIds, codes);
     res.json({ id: labTestId, message: 'Lab test created successfully' });
   } catch (error) {
     console.error('Error creating lab test:', error);

@@ -1,4 +1,5 @@
 import { getAllLabOrders as getAllLabOrdersService } from './getAllLabOrders';
+import { getLabOrdersByPatientId as getLabOrdersByPatientIdService } from './getLabOrdersByPatientId';
 import { createLabOrder as createLabOrderService } from './createLabOrder';
 import { getLabOrderById as getLabOrderByIdService } from './getLabOrderById';
 import { getLabOrderWithDetails as getLabOrderWithDetailsService } from './getLabOrderWithDetails';
@@ -10,15 +11,21 @@ export class LabOrderService {
     return getAllLabOrdersService();
   }
 
+  static async getLabOrdersByPatientId(patientId: string) {
+    return getLabOrdersByPatientIdService(patientId);
+  }
+
   static async createLabOrder(
     name: string,
     patientId: string,
     orderId: number,
     labId: string,
     labTestId: string,
-    orderingProvider: string
+    orderingProvider: string,
+    status?: string,
+    completedDate?: Date
   ) {
-    return createLabOrderService(name, patientId, orderId, labId, labTestId, orderingProvider);
+    return createLabOrderService(name, patientId, orderId, labId, labTestId, orderingProvider, status, completedDate);
   }
 
   static async getLabOrderById(id: string) {

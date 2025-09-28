@@ -1,5 +1,6 @@
 import { db } from '../../../config/firebase';
 import { LabOrder } from '../types/labOrderTypes';
+import { addLabNamesToOrders } from './labNameResolver';
 
 export const getLabOrderById = async (id: string): Promise<LabOrder | null> => {
   const labOrderDoc = await db.collection('labOrders').doc(id).get();
@@ -9,7 +10,7 @@ export const getLabOrderById = async (id: string): Promise<LabOrder | null> => {
   }
   
   const data = labOrderDoc.data();
-  return {
+  const labOrder = {
     id: labOrderDoc.id,
     name: data?.name,
     patientId: data?.patientId,
@@ -24,4 +25,9 @@ export const getLabOrderById = async (id: string): Promise<LabOrder | null> => {
     cancelledDate: data?.cancelledDate,
     createdAt: data?.createdAt
   };
+
+  // Add lab name to the order
+  const labOrdersWithNames = await addLabNamesToOrders([labOrder]);
+  
+  return labOrdersWithNames[0] || null;
 };

@@ -6,6 +6,7 @@ export interface LabOrder {
   patientId: string;
   orderId: number;
   labId: string;
+  labName: string;
   labTestId: string;
   status: LabOrderStatus;
   orderingProvider: string;
@@ -23,6 +24,8 @@ export interface CreateLabOrderRequest {
   labId: string;
   labTestId: string;
   orderingProvider: string;
+  status?: LabOrderStatus;
+  completedDate?: Date;
 }
 
 export interface CreateLabOrderResponse {

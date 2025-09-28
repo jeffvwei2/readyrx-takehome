@@ -12,8 +12,16 @@ export const parseLabData = async (req: Request, res: Response): Promise<void> =
       return;
     }
     
+    // For file uploads, we just parse the data without saving results
     if (!labOrderId || !labTestId) {
-      res.status(400).json({ error: 'Lab order ID and lab test ID are required' });
+      const parseResult = await ParserService.parseLabData(
+        labData,
+        '', // Empty labOrderId for parsing only
+        '', // Empty labTestId for parsing only
+        parserType as ParserType
+      );
+      
+      res.json(parseResult);
       return;
     }
     

@@ -12,6 +12,7 @@ export interface ParseResult {
   results: CreatePatientResultRequest[];
   errors: string[];
   warnings: string[];
+  labReport?: LabReport; // Optional lab report for file uploads
 }
 
 // Common lab data structures

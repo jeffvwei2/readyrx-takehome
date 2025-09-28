@@ -39,6 +39,7 @@ export const getLabOrderWithDetails = async (id: string): Promise<LabOrderWithDe
       patientId: labOrderData?.patientId,
       orderId: labOrderData?.orderId,
       labId: labOrderData?.labId,
+      labName: labData?.name || 'Unknown Lab',
       labTestId: labOrderData?.labTestId,
       status: labOrderData?.status,
       orderingProvider: labOrderData?.orderingProvider,

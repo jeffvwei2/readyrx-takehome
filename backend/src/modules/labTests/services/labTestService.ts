@@ -9,8 +9,8 @@ export class LabTestService {
     return getAllLabTestsService();
   }
 
-  static async createLabTest(name: string, metricIds: string[] = []) {
-    return createLabTestService(name, metricIds);
+  static async createLabTest(name: string, metricIds: string[] = [], codes: string[] = []) {
+    return createLabTestService(name, metricIds, codes);
   }
 
   static async getLabTestById(id: string) {
