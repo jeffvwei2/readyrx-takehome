@@ -9,7 +9,7 @@
       "fullUrl": "urn:uuid:service-request-12345",
       "resource": {
         "resourceType": "ServiceRequest",
-        "id": "57875",
+        "id": "29685",
         "status": "completed",
         "intent": "order",
         "category": [
@@ -38,7 +38,7 @@
         "identifier": [
           {
             "system": "http://hospital.example.org/orders",
-            "value": "57875"
+            "value": "29685"
           }
         ],
         "requester": {

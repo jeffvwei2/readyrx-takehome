@@ -10,23 +10,16 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTestPatient();
+    fetchPatients();
   }, []);
 
-  const fetchTestPatient = async (): Promise<void> => {
+  const fetchPatients = async (): Promise<void> => {
     try {
       setLoading(true);
-      const response = await axios.get<Patient[]>('/api/patients');
-      const patients = response.data;
+      await axios.get<Patient[]>('/api/patients');
       
-      // Find the test patient by email
-      const testPatient = patients.find(p => p.email === 'test@readyrx.com');
-      if (testPatient) {
-        setSelectedPatient(testPatient);
-      } else if (patients.length > 0) {
-        // Fallback to first patient if test patient not found
-        setSelectedPatient(patients[0]);
-      }
+      // Don't auto-select any patient on initial load
+      // Let the user choose from the sidebar
     } catch (error) {
       console.error('Error fetching patients:', error);
     } finally {
@@ -39,7 +32,7 @@ const App: React.FC = () => {
   };
 
   const handleRefreshPatients = () => {
-    fetchTestPatient();
+    fetchPatients();
   };
 
   if (loading) {

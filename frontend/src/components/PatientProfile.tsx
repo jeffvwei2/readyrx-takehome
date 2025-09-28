@@ -3,15 +3,13 @@ import axios from 'axios';
 import { PatientProfileProps, LabOrder } from '../types';
 import { convertFirestoreTimestamp } from '../utils/dates';
 import RecentLabs from './RecentLabs';
-import MetricFilter from './MetricFilter';
-import HistoricalChart from './HistoricalChart';
+import MetricsDashboard from './MetricsDashboard';
 import UploadModal from './UploadModal';
 import PatientUpload from './PatientUpload';
 
 const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
   const [labOrders, setLabOrders] = useState<LabOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMetric, setSelectedMetric] = useState<string>('');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadHandler, setUploadHandler] = useState<((fileContent: string, fileName: string) => Promise<void>) | null>(null);
 
@@ -43,10 +41,6 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
       window.removeEventListener('openUploadModal', handleOpenUploadModal as EventListener);
     };
   }, []);
-
-  const handleMetricSelect = (metricName: string) => {
-    setSelectedMetric(metricName);
-  };
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -91,23 +85,8 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
               />
             </div>
 
-            {/* Main Content - Chart and Filter (2/3 width) */}
-            <div className="w-2/3 flex flex-col">
-              {/* Metric Filter */}
-              <MetricFilter 
-                patientId={patient.id}
-                onMetricSelect={handleMetricSelect}
-                selectedMetric={selectedMetric}
-              />
-
-              {/* Historical Chart */}
-              {selectedMetric && (
-                <HistoricalChart 
-                  patientId={patient.id}
-                  metricName={selectedMetric}
-                />
-              )}
-            </div>
+            {/* Main Content - Metrics Dashboard (2/3 width) */}
+            <MetricsDashboard patient={patient} />
           </div>
         </div>
       </div>

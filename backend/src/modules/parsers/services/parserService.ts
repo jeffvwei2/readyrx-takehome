@@ -86,6 +86,7 @@ export class ParserService {
       }
 
       // Create patient results from the parsed lab report
+      console.log(`Creating patient results from lab report with ${parseResult.labReport.observations.length} observations`);
       const results = await this.createResultsFromLabReport(parseResult.labReport, labOrderId, labTestId);
       
       if (results.length > 0) {
@@ -94,6 +95,8 @@ export class ParserService {
         
         // Log successful parsing
         console.log(`Successfully parsed ${results.length} results for new lab order ${labOrderId}`);
+      } else {
+        console.warn(`No patient results were created for lab order ${labOrderId}`);
       }
       
       return {
@@ -231,7 +234,11 @@ export class ParserService {
     const labData = labDoc.data();
     
     // Create results for each observation in the lab report
+    console.log(`Processing ${labReport.observations.length} observations for patient results`);
+    
     for (const observation of labReport.observations) {
+      console.log(`Looking for metric: "${observation.metricName}"`);
+      
       // Find matching metric by name
       const metricsSnapshot = await db.collection('metrics')
         .where('name', '==', observation.metricName)
@@ -239,6 +246,7 @@ export class ParserService {
       
       if (!metricsSnapshot.empty) {
         const metricDoc = metricsSnapshot.docs[0];
+        console.log(`Found metric: ${metricDoc.id} for "${observation.metricName}"`);
         
         const resultData = {
           patientId: labOrderData.patientId,
@@ -256,6 +264,7 @@ export class ParserService {
         
         try {
           const resultId = await ResultService.createResult(resultData);
+          console.log(`Created patient result: ${resultId} for metric "${observation.metricName}"`);
           results.push({
             ...resultData,
             id: resultId
@@ -263,6 +272,8 @@ export class ParserService {
         } catch (error) {
           console.error('Error creating patient result:', error);
         }
+      } else {
+        console.warn(`No metric found for: "${observation.metricName}"`);
       }
     }
     

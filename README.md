@@ -1,6 +1,6 @@
 # ReadyRx Takehome App
 
-A full-stack TypeScript application built with React + Tailwind CSS frontend, Node.js + Express backend, and Firestore database.
+This app provides lab results for patients who can then track their historical results per metric/biomarker. 
 
 ## Project Structure
 
@@ -34,46 +34,57 @@ readyrx-takehome/
 └── README.md
 ```
 
-## Setup Instructions
+## Quick Start
+
+### Prerequisites
+- Node.js (v16 or higher)
+- Java (for Firebase Emulator)
 
 ### 1. Install Dependencies
-
 ```bash
-# Install all dependencies (root, backend, and frontend)
 npm run install-all
 ```
 
-### 2. Firebase Setup
+### 2. Start Everything
+```bash
+npm run start
+```
+
+This single command will:
+- Start Firebase Emulator (Firestore on port 8080)
+- Start Backend server (Express on port 3001)
+- Start Frontend React app (on port 3000)
+- Seed the database with test data
+
+### 3. Access the Application
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3001
+- **Firebase Emulator UI**: http://localhost:4000
+
+### Individual Service Commands
+```bash
+npm run emulator    # Start Firebase Emulator only
+npm run backend     # Start backend server only  
+npm run frontend    # Start frontend only
+```
+
+### Production Setup (Optional)
+For production deployment with real Firebase:
 
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
 2. Enable Firestore Database
-3. Generate a service account key:
-   - Go to Project Settings > Service Accounts
-   - Click "Generate new private key"
-   - Download the JSON file
-4. Copy `backend/env.example` to `backend/.env`
-5. Fill in your Firebase credentials in `backend/.env`:
+3. Generate a service account key and create `backend/.env`:
    ```
-   PORT=5000
+   PORT=3001
    FIREBASE_PROJECT_ID=your-project-id
    FIREBASE_CLIENT_EMAIL=your-client-email@your-project.iam.gserviceaccount.com
    FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key here\n-----END PRIVATE KEY-----\n"
    ```
+4. Set `USE_EMULATOR=false` in `backend/.env`
 
-### 3. Run the Application
+## Database Schema
 
-```bash
-# Start both frontend and backend concurrently
-npm run dev
-```
-
-This will start:
-- Backend server on http://localhost:5000
-- Frontend React app on http://localhost:3000
-
-## Entity Structure
-
-The application follows a domain-driven design with the following core entities:
+The application uses a domain-driven design with the following core entities:
 
 ### **Patient**
 ```typescript
@@ -95,16 +106,25 @@ interface Lab {
   createdAt: Date;
 }
 ```
-*Pre-seeded with: Quest Diagnostics (HL7), LabCorp (FHIR)*
 
-### **Metric**
+### **Metric (aka Biomarkers) ** 
 ```typescript
 interface Metric {
   id: string;
   name: string;
-  result: string | number | boolean;
+  result: MetricResult;  // Flexible JSON structure
+  units?: string;        // Optional units (mg/dL, U/L, etc.)
   createdAt: Date;
 }
+
+type MetricResult = // common possible metric types
+  | NumericResult 
+  | RangeResult 
+  | DescriptorResult 
+  | ComplexResult 
+  | ArrayResult 
+  | BooleanResult
+  | number | string | boolean;  // Simple values
 ```
 
 ### **LabTest**
@@ -113,9 +133,11 @@ interface LabTest {
   id: string;
   name: string;
   metricIds: string[];  // References to Metrics
+  codes: string[];      // LOINC codes
   createdAt: Date;
 }
 ```
+*Pre-seeded with generic CMP (Comprehensive Metabolic Panel), CBC (Complete Blood Count) *
 
 ### **LabOrder**
 ```typescript
@@ -123,8 +145,9 @@ interface LabOrder {
   id: string;
   name: string;
   patientId: string;     // References Patient
-  orderId: number;      // For aggregation
+  orderId: number;      // For aggregation (multiple orders can share same orderId)
   labId: string;        // References Lab
+  labName: string;      // Denormalized for performance
   labTestId: string;    // References LabTest (single test per order)
   status: 'Ordered' | 'In Progress' | 'Completed' | 'Cancelled';
   orderingProvider: string;
@@ -143,7 +166,7 @@ interface PatientResult {
   patientId: string;     // References Patient
   metricId: string;      // References Metric
   metricName: string;     // Denormalized for performance
-  result: string | number | boolean;
+  result: MetricResult;   // Flexible result structure
   labOrderId: string;    // References LabOrder
   labTestId: string;     // References LabTest
   labId: string;         // References Lab
@@ -155,92 +178,110 @@ interface PatientResult {
 }
 ```
 
-## Architectural Decision: Results Entity vs Query-Based Approach
-
-### **Why We Chose a Dedicated Results Entity**
-
-When designing patient metric aggregation, we evaluated two approaches:
-
-#### **Option 1: Query-Based Approach**
+### **Request** (Lab Request Files)
 ```typescript
-// Would require complex joins across collections:
-// LabOrders → LabTests → Metrics → Patients
-const patientResults = await db.collection('labOrders')
-  .where('patientId', '==', patientId)
-  .where('status', '==', 'Completed')
-  .get()
-  .then(orders => {
-    // Then query each lab test for metrics
-    // Then query each metric for results
-    // Complex aggregation logic repeated in every query
-  });
+interface Request {
+  id: string;
+  labOrderId: string;    // References LabOrder
+  patientId: string;    // References Patient
+  labId: string;        // References Lab
+  labTestId: string;    // References LabTest
+  orderId: number;      // For aggregation
+  orderingProvider: string;
+  metrics: string[];    // Metric names
+  interfaceType: 'HL7' | 'FHIR' | 'JSON';
+  file: string;         // Generated request file content
+  createdAt: Date;
+}
 ```
 
-#### **Option 2: Dedicated Results Entity (Chosen)**
-```typescript
-// Simple, fast patient-centric queries:
-const patientResults = await db.collection('patientResults')
-  .where('patientId', '==', patientId)
-  .orderBy('resultDate', 'desc')
-  .get();
-```
+## Frontend Application
 
-### **Benefits of the Results Entity Approach:**
+The React frontend provides a comprehensive lab management interface with the following key features:
 
-1. **Performance**: Pre-aggregated data eliminates complex joins across multiple collections
-2. **Historical Tracking**: Built-in timeline functionality with optimized date-based queries
-3. **Flexible Querying**: Easy filtering by patient, metric, date ranges, labs, providers
-4. **Data Integrity**: Single source of truth for patient results with denormalized key fields
-5. **Scalability**: Optimized for patient-centric operations that will be frequent
-6. **Query Simplicity**: Simple, readable queries instead of complex aggregation logic
-7. **Caching Benefits**: Results can be easily cached and invalidated
-8. **Analytics Ready**: Pre-structured data perfect for trend analysis and reporting
+### **Patient Management**
+- **Patient Profile View**: Displays patient information, insurance details, and member since date
+- **Patient List**: Browse and select patients from a paginated list
+- **Patient Creation**: Add new patients with form validation
 
-### **Trade-offs:**
-- **Storage**: Additional storage for denormalized data (acceptable given performance gains)
-- **Consistency**: Requires maintaining data consistency when source entities change
-- **Complexity**: Additional service to populate results from lab orders
+### **Lab Order Management**
+- **Recent Labs Sidebar**: Paginated view of recent lab orders with status indicators
+- **Lab Order Creation**: Create new lab orders with multiple lab tests
+- **Order Status Tracking**: Visual status indicators (Ordered, In Progress, Completed, Cancelled)
 
-The Results entity approach provides the best balance of performance, maintainability, and user experience for patient-centric metric queries.
+### **Lab Results Visualization**
+- **Historical Charts**: Interactive line charts showing metric trends over time using Recharts
+- **Metric Filtering**: Dropdown and button-based filtering to select specific metrics
+- **Data Summary**: Latest value, average, and range statistics for each metric
+- **Responsive Design**: Mobile-friendly interface with Tailwind CSS
 
-## Features
+### **File Upload & Processing**
+- **Drag & Drop Upload**: Support for HL7, FHIR, and JSON lab result files
+- **Auto-Detection**: Automatically detects file format (HL7 vs FHIR)
+- **Order ID Extraction**: Parses existing order IDs from uploaded files
+- **Result Processing**: Converts uploaded files into patient results and updates lab orders
 
-- **Frontend**: React app with Tailwind CSS for styling
-- **Backend**: Express server with CORS enabled
-- **Database**: Firestore integration for data persistence
+### **Data Integration**
+- **Real-time Updates**: Automatic refresh of data after uploads and changes
+- **Date Handling**: Proper conversion of Firestore timestamps to JavaScript dates
+- **Error Handling**: User-friendly error messages and loading states
+- **API Integration**: RESTful API calls with proper error handling
+
+### **User Experience**
+- **Fixed Layout**: Patient header stays fixed while content scrolls
+- **Loading States**: Spinner indicators during data fetching
+- **Status Colors**: Color-coded status indicators for quick visual reference
+- **Responsive Grid**: Adaptive layout that works on different screen sizes
+
+## Backend Features
+
 - **Modular Architecture**: Domain-driven design with separate modules for each entity
-- **Patient-Centric Results**: Aggregated results with historical tracking
-- **Lab Order Workflow**: Complete lab order management with status tracking
-- **Flexible Metrics**: Support for various metric types (string, number, boolean)
+- **Lab Data Parsing**: HL7 and FHIR parsers for processing lab result files
+- **Request Generation**: Automatic generation of lab request files in appropriate formats
+- **Database Seeding**: Pre-populated test data for immediate testing
+- **CORS Support**: Cross-origin requests enabled for frontend integration
+- **Error Handling**: Comprehensive error handling with detailed logging
 
 ## API Endpoints
 
 The application provides RESTful APIs for all entities:
 
-- **Health**: `/api/health` - System health check
-- **Patients**: `/api/patients` - Patient management (CRUD)
-- **Labs**: `/api/labs` - Lab management (CRUD)
-- **Metrics**: `/api/metrics` - Metric management (CRUD)
-- **Lab Tests**: `/api/lab-tests` - Lab test management (CRUD)
-- **Lab Orders**: `/api/lab-orders` - Lab order workflow (CRUD)
-- **Results**: `/api/results` - Patient results aggregation
+### **Core CRUD Endpoints**
+- **Health**: `GET /api/health` - System health check
+- **Patients**: `GET|POST /api/patients` - Patient management
+- **Labs**: `GET|POST /api/labs` - Lab management  
+- **Metrics**: `GET|POST /api/metrics` - Metric management
+- **Lab Tests**: `GET|POST /api/lab-tests` - Lab test management
+- **Lab Orders**: `GET|POST /api/lab-orders` - Lab order management
+- **Results**: `GET|POST /api/results` - Patient results management
+- **Requests**: `GET /api/requests` - Lab request files (read-only)
 
-### Specialized Result Queries
-- `GET /api/results/patient/:patientId` - All results for a patient
-- `GET /api/results/patient/:patientId/summary` - Patient results summary
-- `GET /api/results/patient/:patientId/metric/:metricId/history` - Historical data for specific metric
-- `GET /api/results/patient/:patientId/date-range` - Results within date range
+### **Specialized Endpoints**
+- **Lab Orders**: `POST /api/lab-orders/multiple` - Create multiple lab orders with same orderId
+- **Results**: `GET /api/results?patientId={id}&metricName={name}` - Filter results by patient and metric
+- **Requests**: `GET /api/requests/lab-order/{labOrderId}` - Get request files for specific lab order
+
+### **File Processing**
+- **Parsers**: `POST /api/parsers/parse` - Parse HL7/FHIR lab result files
+- **File Upload**: `POST /api/parsers/upload` - Upload and process lab result files
 
 ## Available Scripts
 
-- `npm run dev` - Start both frontend and backend
-- `npm run server` - Start only the backend
-- `npm run client` - Start only the frontend
-- `npm run install-all` - Install all dependencies
+### **Root Level Commands**
+- `npm run start` - Start all services (emulator, backend, frontend)
+- `npm run install-all` - Install dependencies for all projects
+- `npm run emulator` - Start Firebase Emulator only
+- `npm run backend` - Start backend server only
+- `npm run frontend` - Start frontend only
+
+### **Development Commands**
+- `npm run dev` - Start both frontend and backend (legacy)
+- `npm run server` - Start only the backend (legacy)
+- `npm run client` - Start only the frontend (legacy)
 
 ## Tech Stack
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Axios
 - **Backend**: Node.js, Express, TypeScript, Firebase Admin SDK
 - **Database**: Google Firestore
-- **Development**: Concurrently for running multiple processes, ts-node-dev for TypeScript development
+ 

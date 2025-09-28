@@ -30,27 +30,56 @@ const PatientUpload: React.FC<PatientUploadProps> = ({ patient, onUploadComplete
       // Step 2: Use the order ID from the parsed lab report, or generate a new one if not found
       const orderId = labReport.orderId && labReport.orderId > 0 ? labReport.orderId : Math.floor(Math.random() * 1000000) + 1;
 
-      // Step 3: Create/update the lab order
-      const currentDate = new Date();
-      const labOrderResponse = await axios.post('/api/lab-orders', {
-        patientId: patient.id,
-        name: `Lab Results - ${fileName}`,
-        orderId: orderId,
-        labId: 'quest-diagnostics', // Default lab ID
-        labTestId: 'FJfHlDxjEdtnke339tGW', // Default CMP test ID
-        orderingProvider: labReport.orderingProvider || 'File Upload',
-        status: 'Completed',
-        completedDate: currentDate
-      });
-
-      const labOrderId = labOrderResponse.data.id;
+      // Step 3: Check if lab order already exists with this orderId
+      let labOrderId: string;
+      let isNewOrder = false;
+      
+      try {
+        // Try to find existing lab order with this orderId
+        const existingOrderResponse = await axios.get(`/api/lab-orders?orderId=${orderId}&patientId=${patient.id}`);
+        
+        if (existingOrderResponse.data && existingOrderResponse.data.length > 0) {
+          // Update existing order
+          const existingOrder = existingOrderResponse.data[0];
+          labOrderId = existingOrder.id;
+          
+          const updateResponse = await axios.put(`/api/lab-orders/${labOrderId}`, {
+            status: 'Completed',
+            completedDate: new Date(),
+            orderingProvider: labReport.orderingProvider || existingOrder.orderingProvider
+            // Note: We don't update the name to preserve the original order name
+          });
+          
+          console.log(`Updated existing lab order ${labOrderId} with orderId ${orderId}`);
+        } else {
+          // Create new lab order
+          const currentDate = new Date();
+          const labOrderResponse = await axios.post('/api/lab-orders', {
+            patientId: patient.id,
+            name: `Lab Results - ${fileName}`,
+            orderId: orderId,
+            labId: 'quest-diagnostics', // Default lab ID
+            labTestId: 'FJfHlDxjEdtnke339tGW', // Default CMP test ID
+            orderingProvider: labReport.orderingProvider || 'File Upload',
+            status: 'Completed',
+            completedDate: currentDate
+          });
+          
+          labOrderId = labOrderResponse.data.id;
+          isNewOrder = true;
+          console.log(`Created new lab order ${labOrderId} with orderId ${orderId}`);
+        }
+      } catch (error) {
+        console.error('Error checking/creating lab order:', error);
+        throw new Error('Failed to process lab order');
+      }
 
       // Step 4: Parse the data again with the lab order ID to create patient results
       const resultParseResponse = await axios.post('/api/parsers/parse', {
         data: fileContent,
         labOrderId: labOrderId,
         labTestId: 'FJfHlDxjEdtnke339tGW', // Use the same lab test ID
-        isNewOrder: true // Flag to indicate this is a newly created lab order
+        isNewOrder: isNewOrder // Flag to indicate whether this is a newly created lab order
       });
 
       if (resultParseResponse.data.success) {
@@ -60,7 +89,7 @@ const PatientUpload: React.FC<PatientUploadProps> = ({ patient, onUploadComplete
       // Step 5: Refresh lab orders to show the new one
       await onUploadComplete();
       
-      console.log('Lab order and results created successfully:', labOrderResponse.data);
+      console.log('Lab order and results created successfully:', resultParseResponse.data);
     } catch (error) {
       console.error('Error processing file upload:', error);
       throw new Error('Failed to process lab results file');

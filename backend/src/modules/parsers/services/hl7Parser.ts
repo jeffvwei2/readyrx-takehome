@@ -12,21 +12,53 @@ import { db } from '../../../config/firebase';
 export class HL7Parser implements LabDataParser {
   private config = {
     metricMapping: {
-      'GLU': 'Blood Glucose',
+      // LOINC codes for CMP metrics
+      '33747-0': 'Glucose',
+      '2951-2': 'Sodium', 
+      '2823-3': 'Potassium',
+      '2075-0': 'Chloride',
+      '2028-9': 'Carbon Dioxide (CO2)',
+      '3094-0': 'Blood Urea Nitrogen (BUN)',
+      '2160-0': 'Creatinine',
+      '2885-2': 'Total Protein',
+      '1751-7': 'Albumin',
+      '1975-2': 'Total Bilirubin',
+      '6768-6': 'Alkaline Phosphatase (ALP)',
+      '1742-6': 'Alanine Aminotransferase (ALT)',
+      '1920-8': 'Aspartate Aminotransferase (AST)',
+      '17861-6': 'Calcium',
+      
+      // LOINC codes for CBC metrics
+      '33747-1': 'White Blood Cell Count (WBC)',
+      '789-8': 'Red Blood Cell Count (RBC)',
+      '718-7': 'Hemoglobin',
+      '4544-3': 'Hematocrit',
+      '787-2': 'Mean Corpuscular Volume (MCV)',
+      '785-6': 'Mean Corpuscular Hemoglobin (MCH)',
+      '786-4': 'Mean Corpuscular Hemoglobin Concentration (MCHC)',
+      '777-3': 'Platelet Count',
+      '770-8': 'Neutrophils',
+      '736-9': 'Lymphocytes',
+      '5905-5': 'Monocytes',
+      '713-8': 'Eosinophils',
+      '706-2': 'Basophils',
+      
+      // Legacy short codes (for backward compatibility)
+      'GLU': 'Glucose',
       'CHOL': 'Total Cholesterol',
       'HDL': 'HDL Cholesterol',
       'LDL': 'LDL Cholesterol',
       'TRIG': 'Triglycerides',
       'HBA1C': 'Hemoglobin A1C',
       'CREAT': 'Creatinine',
-      'BUN': 'Blood Urea Nitrogen',
-      'ALT': 'Alanine Aminotransferase',
-      'AST': 'Aspartate Aminotransferase',
+      'BUN': 'Blood Urea Nitrogen (BUN)',
+      'ALT': 'Alanine Aminotransferase (ALT)',
+      'AST': 'Aspartate Aminotransferase (AST)',
       'TSH': 'Thyroid Stimulating Hormone',
       'T4': 'Free T4',
       'T3': 'Free T3',
-      'WBC': 'White Blood Cell Count',
-      'RBC': 'Red Blood Cell Count',
+      'WBC': 'White Blood Cell Count (WBC)',
+      'RBC': 'Red Blood Cell Count (RBC)',
       'HGB': 'Hemoglobin',
       'HCT': 'Hematocrit',
       'PLT': 'Platelet Count'
@@ -84,6 +116,7 @@ export class HL7Parser implements LabDataParser {
       
       // Debug: Log available segments
       console.log('Available segments:', hl7Message.segments.map(s => s.segmentType));
+      console.log('HL7 message parsed successfully for file upload');
       
       // Extract basic lab report info from HL7 message
       const mshSegment = hl7Message.segments.find(s => s.segmentType === 'MSH');
@@ -112,15 +145,23 @@ export class HL7Parser implements LabDataParser {
       const observations: LabObservation[] = [];
       const obxSegments = hl7Message.segments.filter(s => s.segmentType === 'OBX');
       
+      console.log(`Found ${obxSegments.length} OBX segments`);
+      
       for (const obxSegment of obxSegments) {
         const obx = this.parseOBXSegment(obxSegment);
         if (obx && obx.observationResultStatus === 'F') { // Final results only
+          console.log(`Processing OBX segment: ${obx.observationId} = ${obx.observationValue}`);
           const observation = this.convertOBXToObservation(obx);
           if (observation) {
+            console.log(`Created observation: ${observation.metricName} = ${JSON.stringify(observation.result)}`);
             observations.push(observation);
+          } else {
+            console.warn(`Failed to convert OBX segment: ${obx.observationId}`);
           }
         }
       }
+      
+      console.log(`Created ${observations.length} observations from HL7 file`);
       
       // Create a lab report for file upload with extracted order ID
       const labReport: LabReport = {
@@ -263,8 +304,30 @@ export class HL7Parser implements LabDataParser {
   private convertOBXToObservation(obx: HL7OBXSegment): LabObservation | null {
     try {
       // Extract metric name from observation ID
-      const metricCode = obx.observationId.split('^')[0];
-      const metricName = this.config.metricMapping[metricCode] || metricCode;
+      // Format: LOINC_CODE^DESCRIPTION^LOINC_SYSTEM
+      const observationIdParts = obx.observationId.split('^');
+      const loincCode = observationIdParts[0];
+      const description = observationIdParts[1] || '';
+      
+      // Try to find metric name using LOINC code first, then fall back to description
+      let metricName = this.config.metricMapping[loincCode];
+      
+      if (!metricName) {
+        // If no LOINC code mapping, try to match by description
+        const descriptionLower = description.toLowerCase();
+        for (const [code, name] of Object.entries(this.config.metricMapping)) {
+          if (name.toLowerCase().includes(descriptionLower) || descriptionLower.includes(name.toLowerCase())) {
+            metricName = name;
+            break;
+          }
+        }
+      }
+      
+      // If still no match, use the description as fallback
+      if (!metricName) {
+        metricName = description || loincCode;
+        console.warn(`No metric mapping found for LOINC code ${loincCode} (${description}), using description as fallback`);
+      }
       
       // Parse result value based on value type and create typed result
       let result: MetricResult;

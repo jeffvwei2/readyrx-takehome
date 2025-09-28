@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { HistoricalChartProps, ChartDataPoint, PatientResult } from '../types';
@@ -9,59 +9,67 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
   const [loading, setLoading] = useState(true);
   const [units, setUnits] = useState<string>('');
 
-  const fetchHistoricalData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get<PatientResult[]>(`/api/results?patientId=${patientId}&metricName=${metricName}`);
-      const results = response.data;
-
-      // Transform data for chart
-      const transformedData: ChartDataPoint[] = results
-        .map((result: PatientResult): ChartDataPoint | null => {
-          // Extract numeric value from result
-          let value: number;
-          if (typeof result.result === 'number') {
-            value = result.result;
-          } else if (result.result && typeof result.result === 'object' && result.result.value) {
-            value = result.result.value;
-          } else {
-            return null; // Skip non-numeric results
-          }
-
-          // Convert Firestore Timestamp to JavaScript Date
-          const resultDate = convertFirestoreTimestamp(result.resultDate);
-
-          return {
-            date: resultDate.toLocaleDateString(),
-            value: value,
-            orderId: result.orderId,
-            labName: result.labName,
-            provider: result.orderingProvider,
-            units: result.units,
-            fullDate: resultDate
-          };
-        })
-        .filter((item): item is ChartDataPoint => item !== null)
-        .sort((a, b) => {
-          const dateA = a.fullDate || new Date(a.date);
-          const dateB = b.fullDate || new Date(b.date);
-          return dateA.getTime() - dateB.getTime();
-        });
-
-      setChartData(transformedData);
-      if (transformedData.length > 0) {
-        setUnits(transformedData[0].units || '');
-      }
-    } catch (error) {
-      console.error('Error fetching historical data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [patientId, metricName]);
-
   useEffect(() => {
+    const fetchHistoricalData = async () => {
+      // Don't fetch data if no metric is selected
+      if (!metricName) {
+        setChartData([]);
+        setUnits('');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await axios.get<PatientResult[]>(`/api/results?patientId=${patientId}&metricName=${metricName}`);
+        const results = response.data;
+
+        // Transform data for chart
+        const transformedData: ChartDataPoint[] = results
+          .map((result: PatientResult): ChartDataPoint | null => {
+            // Extract numeric value from result
+            let value: number;
+            if (typeof result.result === 'number') {
+              value = result.result;
+            } else if (result.result && typeof result.result === 'object' && result.result.value) {
+              value = result.result.value;
+            } else {
+              return null; // Skip non-numeric results
+            }
+
+            // Convert Firestore Timestamp to JavaScript Date
+            const resultDate = convertFirestoreTimestamp(result.resultDate);
+
+            return {
+              date: resultDate.toLocaleDateString(),
+              value: value,
+              orderId: result.orderId,
+              labName: result.labName,
+              provider: result.orderingProvider,
+              units: result.units,
+              fullDate: resultDate
+            };
+          })
+          .filter((item): item is ChartDataPoint => item !== null)
+          .sort((a, b) => {
+            const dateA = a.fullDate || new Date(a.date);
+            const dateB = b.fullDate || new Date(b.date);
+            return dateA.getTime() - dateB.getTime();
+          });
+
+        setChartData(transformedData);
+        if (transformedData.length > 0) {
+          setUnits(transformedData[0].units || '');
+        }
+      } catch (error) {
+        console.error('Error fetching historical data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchHistoricalData();
-  }, [fetchHistoricalData]);
+  }, [patientId, metricName]);
 
   const formatTooltip = (value: number, name: string, props: any) => {
     const data = props.payload;
@@ -72,6 +80,25 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
       `Provider: ${data.provider}`
     ];
   };
+
+  // Show placeholder when no metric is selected
+  if (!metricName) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+          Historical Data
+        </h2>
+        <div className="text-center py-8">
+          <div className="text-gray-400 mb-4">
+            <svg className="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <p className="text-gray-500 text-lg">Select a metric to view historical data</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

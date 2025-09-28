@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { RecentLabsProps} from '../types';
 import {  convertFirestoreTimestamp, FlexibleDate } from '../utils/dates';
 
@@ -26,24 +26,16 @@ const RecentLabs: React.FC<RecentLabsProps> = ({ labOrders, loading }) => {
   };
 
   // Sort by completion date (most recent first) and calculate pagination
-  const { sortedOrders, totalPages, paginatedOrders } = useMemo(() => {
-    const sorted = [...labOrders].sort((a, b) => {
-      const dateA = a.completedDate || a.orderedDate;
-      const dateB = b.completedDate || b.orderedDate;
-      return convertFirestoreTimestamp(dateB).getTime() - convertFirestoreTimestamp(dateA).getTime();
-    });
+  const sorted = [...labOrders].sort((a, b) => {
+    const dateA = a.completedDate || a.orderedDate;
+    const dateB = b.completedDate || b.orderedDate;
+    return convertFirestoreTimestamp(dateB).getTime() - convertFirestoreTimestamp(dateA).getTime();
+  });
 
-    const totalPages = Math.ceil(sorted.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginated = sorted.slice(startIndex, endIndex);
-
-    return {
-      sortedOrders: sorted,
-      totalPages,
-      paginatedOrders: paginated
-    };
-  }, [labOrders, currentPage]);
+  const totalPages = Math.ceil(sorted.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = sorted.slice(startIndex, endIndex);
 
   const handlePreviousPage = () => {
     setCurrentPage(prev => Math.max(prev - 1, 1));
@@ -66,7 +58,7 @@ const RecentLabs: React.FC<RecentLabsProps> = ({ labOrders, loading }) => {
             <p className="mt-2 text-gray-600">Loading lab orders...</p>
           </div>
         </div>
-      ) : sortedOrders.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <div className="text-center py-8 flex-1 flex items-center justify-center">
           <p className="text-gray-500">No lab orders found</p>
         </div>
@@ -109,7 +101,7 @@ const RecentLabs: React.FC<RecentLabsProps> = ({ labOrders, loading }) => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
               <div className="text-sm text-gray-600">
-                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sortedOrders.length)} of {sortedOrders.length} orders
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sorted.length)} of {sorted.length} orders
               </div>
               
               <div className="flex items-center space-x-2">

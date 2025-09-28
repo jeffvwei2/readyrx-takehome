@@ -1,5 +1,9 @@
 import { FlexibleDate, convertFirestoreTimestamp } from './utils/dates';
 
+// Re-export for convenience
+export type { FlexibleDate };
+export { convertFirestoreTimestamp };
+
 export interface Patient {
   id: string;
   name: string;
