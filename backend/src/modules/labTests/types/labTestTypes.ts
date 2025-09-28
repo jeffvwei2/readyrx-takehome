@@ -1,9 +1,9 @@
-export interface LabTest {
-  id: string;
+import { BaseEntity, CreateResponse } from '../../../shared/types/common';
+
+export interface LabTest extends BaseEntity {
   name: string;
   metricIds: string[];
   codes: string[]; // LOINC codes
-  createdAt: Date;
 }
 
 export interface CreateLabTestRequest {
@@ -12,10 +12,7 @@ export interface CreateLabTestRequest {
   codes?: string[]; // LOINC codes
 }
 
-export interface CreateLabTestResponse {
-  id: string;
-  message: string;
-}
+export interface CreateLabTestResponse extends CreateResponse {}
 
 export interface UpdateLabTestRequest {
   name?: string;

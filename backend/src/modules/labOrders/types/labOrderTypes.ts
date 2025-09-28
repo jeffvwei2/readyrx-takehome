@@ -1,7 +1,8 @@
+import { BaseEntity, CreateResponse } from '../../../shared/types/common';
+
 export type LabOrderStatus = 'Ordered' | 'In Progress' | 'Completed' | 'Cancelled';
 
-export interface LabOrder {
-  id: string;
+export interface LabOrder extends BaseEntity {
   name: string;
   patientId: string;
   orderId: number;
@@ -14,7 +15,6 @@ export interface LabOrder {
   inProgressDate?: Date;
   completedDate?: Date;
   cancelledDate?: Date;
-  createdAt: Date;
 }
 
 export interface CreateLabOrderRequest {
@@ -28,10 +28,7 @@ export interface CreateLabOrderRequest {
   completedDate?: Date;
 }
 
-export interface CreateLabOrderResponse {
-  id: string;
-  message: string;
-}
+export interface CreateLabOrderResponse extends CreateResponse {}
 
 export interface UpdateLabOrderRequest {
   name?: string;

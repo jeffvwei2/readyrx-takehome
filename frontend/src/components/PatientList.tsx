@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Patient, PatientListProps, convertFirestoreTimestamp } from '../types';
+import { Patient, PatientListProps } from '../types';
+import { convertFirestoreTimestamp } from '../utils/dates';
 
 const PatientList: React.FC<PatientListProps> = ({ onPatientSelect }) => {
   const [patients, setPatients] = useState<Patient[]>([]);

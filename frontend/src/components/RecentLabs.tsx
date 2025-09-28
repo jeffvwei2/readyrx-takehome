@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { RecentLabsProps, convertFirestoreTimestamp } from '../types';
+import { RecentLabsProps} from '../types';
+import {  convertFirestoreTimestamp, FlexibleDate } from '../utils/dates';
 
 const RecentLabs: React.FC<RecentLabsProps> = ({ labOrders, loading }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,7 +21,7 @@ const RecentLabs: React.FC<RecentLabsProps> = ({ labOrders, loading }) => {
     }
   };
 
-  const formatDate = (dateValue: string | { _seconds: number; _nanoseconds: number }) => {
+  const formatDate = (dateValue: FlexibleDate) => {
     return convertFirestoreTimestamp(dateValue).toLocaleDateString();
   };
 

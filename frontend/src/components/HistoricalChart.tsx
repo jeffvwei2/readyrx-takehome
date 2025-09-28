@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { HistoricalChartProps, ChartDataPoint, PatientResult, convertFirestoreTimestamp } from '../types';
+import { HistoricalChartProps, ChartDataPoint, PatientResult } from '../types';
+import { convertFirestoreTimestamp } from '../utils/dates';
 
 const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName }) => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
@@ -15,7 +16,7 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
       const results = response.data;
 
       // Transform data for chart
-      const transformedData = results
+      const transformedData: ChartDataPoint[] = results
         .map((result: PatientResult): ChartDataPoint | null => {
           // Extract numeric value from result
           let value: number;
@@ -45,7 +46,7 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
           const dateA = a.fullDate || new Date(a.date);
           const dateB = b.fullDate || new Date(b.date);
           return dateA.getTime() - dateB.getTime();
-        }) as ChartDataPoint[];
+        });
 
       setChartData(transformedData);
       if (transformedData.length > 0) {

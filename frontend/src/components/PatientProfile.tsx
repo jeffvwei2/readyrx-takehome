@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { PatientProfileProps, LabOrder, convertFirestoreTimestamp } from '../types';
+import { PatientProfileProps, LabOrder } from '../types';
+import { convertFirestoreTimestamp } from '../utils/dates';
 import RecentLabs from './RecentLabs';
 import MetricFilter from './MetricFilter';
 import HistoricalChart from './HistoricalChart';
 import UploadModal from './UploadModal';
+import PatientUpload from './PatientUpload';
 
 const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
   const [labOrders, setLabOrders] = useState<LabOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState<string>('');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadHandler, setUploadHandler] = useState<((fileContent: string, fileName: string) => Promise<void>) | null>(null);
 
   const fetchLabOrders = useCallback(async () => {
     try {
@@ -28,63 +31,21 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
     fetchLabOrders();
   }, [fetchLabOrders]);
 
+  useEffect(() => {
+    const handleOpenUploadModal = (event: CustomEvent) => {
+      setUploadHandler(() => event.detail.onUpload);
+      setUploadModalOpen(true);
+    };
+
+    window.addEventListener('openUploadModal', handleOpenUploadModal as EventListener);
+    
+    return () => {
+      window.removeEventListener('openUploadModal', handleOpenUploadModal as EventListener);
+    };
+  }, []);
+
   const handleMetricSelect = (metricName: string) => {
     setSelectedMetric(metricName);
-  };
-
-  const handleFileUpload = async (fileContent: string, fileName: string) => {
-    try {
-      // Step 1: Parse the lab data to extract information
-      const parseResponse = await axios.post('/api/parsers/parse', {
-        data: fileContent,
-        labOrderId: '', // Will be generated
-        labTestId: '' // Will be determined from parsed data
-      });
-
-      if (!parseResponse.data.success || !parseResponse.data.labReport) {
-        throw new Error('Failed to parse lab results file');
-      }
-
-      const labReport = parseResponse.data.labReport;
-
-      // Step 2: Use the order ID from the parsed lab report, or generate a new one if not found
-      const orderId = labReport.orderId && labReport.orderId > 0 ? labReport.orderId : Math.floor(Math.random() * 1000000) + 1;
-
-      // Step 3: Create/update the lab order
-      const currentDate = new Date();
-      const labOrderResponse = await axios.post('/api/lab-orders', {
-        patientId: patient.id,
-        name: `Lab Results - ${fileName}`,
-        orderId: orderId,
-        labId: 'quest-diagnostics', // Default lab ID
-        labTestId: 'FJfHlDxjEdtnke339tGW', // Default CMP test ID
-        orderingProvider: labReport.orderingProvider || 'File Upload',
-        status: 'Completed',
-        completedDate: currentDate
-      });
-
-      const labOrderId = labOrderResponse.data.id;
-
-      // Step 4: Parse the data again with the lab order ID to create patient results
-      const resultParseResponse = await axios.post('/api/parsers/parse', {
-        data: fileContent,
-        labOrderId: labOrderId,
-        labTestId: 'FJfHlDxjEdtnke339tGW', // Use the same lab test ID
-        isNewOrder: true // Flag to indicate this is a newly created lab order
-      });
-
-      if (resultParseResponse.data.success) {
-        console.log(`Created ${resultParseResponse.data.results.length} patient results`);
-      }
-
-      // Step 5: Refresh lab orders to show the new one
-      await fetchLabOrders();
-      
-      console.log('Lab order and results created successfully:', labOrderResponse.data);
-    } catch (error) {
-      console.error('Error processing file upload:', error);
-      throw new Error('Failed to process lab results file');
-    }
   };
 
   return (
@@ -99,15 +60,10 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
               <p className="text-gray-600">Insurance: {patient.insurance}</p>
             </div>
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setUploadModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Upload Lab Results
-              </button>
+              <PatientUpload 
+                patient={patient}
+                onUploadComplete={fetchLabOrders}
+              />
               <div className="text-right">
                 <div className="text-sm text-gray-500">
                   Patient ID: {patient.id}
@@ -157,12 +113,17 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
       </div>
 
       {/* Upload Modal */}
-      <UploadModal
-        isOpen={uploadModalOpen}
-        onClose={() => setUploadModalOpen(false)}
-        onUpload={handleFileUpload}
-        patientId={patient.id}
-      />
+      {uploadHandler && (
+        <UploadModal
+          isOpen={uploadModalOpen}
+          onClose={() => {
+            setUploadModalOpen(false);
+            setUploadHandler(null);
+          }}
+          onUpload={uploadHandler}
+          patientId={patient.id}
+        />
+      )}
     </div>
   );
 };

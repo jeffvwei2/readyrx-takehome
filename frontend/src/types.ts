@@ -1,9 +1,11 @@
+import { FlexibleDate, convertFirestoreTimestamp } from './utils/dates';
+
 export interface Patient {
   id: string;
   name: string;
   email: string;
   insurance: string;
-  createdAt: Date | string | { _seconds: number; _nanoseconds: number }; // Firestore Timestamp, string, or Date
+  createdAt: FlexibleDate; // Firestore Timestamp, string, or Date
 }
 
 export interface CreatePatientRequest {
@@ -17,23 +19,6 @@ export interface CreatePatientResponse {
   message: string;
 }
 
-// Utility function to convert Firestore Timestamp to JavaScript Date
-export const convertFirestoreTimestamp = (timestamp: any): Date => {
-  if (timestamp && typeof timestamp === 'object' && '_seconds' in timestamp) {
-    // Firestore Timestamp format
-    return new Date(timestamp._seconds * 1000);
-  } else if (typeof timestamp === 'string') {
-    // String date format
-    return new Date(timestamp);
-  } else if (timestamp instanceof Date) {
-    // Already a Date object
-    return timestamp;
-  } else {
-    // Fallback to current date
-    return new Date();
-  }
-};
-
 // Lab Order Types
 export interface LabOrder {
   id: string;
@@ -41,8 +26,8 @@ export interface LabOrder {
   orderId: number;
   status: string;
   orderingProvider: string;
-  orderedDate: string | { _seconds: number; _nanoseconds: number }; // Firestore Timestamp or string
-  completedDate?: string | { _seconds: number; _nanoseconds: number }; // Firestore Timestamp or string
+  orderedDate: FlexibleDate; // Firestore Timestamp or string
+  completedDate?: FlexibleDate; // Firestore Timestamp or string
   labName: string;
 }
 
@@ -67,8 +52,8 @@ export interface PatientResult {
   labName: string;
   orderId: number;
   orderingProvider: string;
-  resultDate: string | { _seconds: number; _nanoseconds: number }; // Firestore Timestamp or string
-  createdAt: string | { _seconds: number; _nanoseconds: number }; // Firestore Timestamp or string
+  resultDate: FlexibleDate; // Firestore Timestamp or string
+  createdAt: FlexibleDate; // Firestore Timestamp or string
 }
 
 // Chart Data Types
@@ -121,7 +106,7 @@ export interface LabTest {
   id: string;
   name: string;
   metricIds: string[];
-  createdAt: Date | string | { _seconds: number; _nanoseconds: number };
+  createdAt: FlexibleDate;
 }
 
 // Lab Types
@@ -129,7 +114,7 @@ export interface Lab {
   id: string;
   name: string;
   interfaceType: string;
-  createdAt: Date | string | { _seconds: number; _nanoseconds: number };
+  createdAt: FlexibleDate;
 }
 
 // Lab Order Form Types
@@ -166,3 +151,5 @@ export interface UploadModalProps {
   onUpload: (fileContent: string, fileName: string) => Promise<void>;
   patientId: string;
 }
+
+

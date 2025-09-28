@@ -1,10 +1,8 @@
-export type InterfaceType = 'HL7' | 'FHIR' | 'JSON';
+import { InterfaceType, BaseEntity, CreateResponse } from '../../../shared/types/common';
 
-export interface Lab {
-  id: string;
+export interface Lab extends BaseEntity {
   name: string;
   interfaceType: InterfaceType;
-  createdAt: Date;
 }
 
 export interface CreateLabRequest {
@@ -12,10 +10,7 @@ export interface CreateLabRequest {
   interfaceType: InterfaceType;
 }
 
-export interface CreateLabResponse {
-  id: string;
-  message: string;
-}
+export interface CreateLabResponse extends CreateResponse {}
 
 export interface UpdateLabRequest {
   name?: string;

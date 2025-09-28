@@ -1,7 +1,7 @@
 import { MetricResult } from '../../metrics/types/metricTypes';
+import { BaseEntity, CreateResponse } from '../../../shared/types/common';
 
-export interface PatientResult {
-  id: string;
+export interface PatientResult extends BaseEntity {
   patientId: string;
   metricId: string;
   metricName: string;
@@ -13,7 +13,6 @@ export interface PatientResult {
   orderId: number;
   orderingProvider: string;
   resultDate: Date;
-  createdAt: Date;
 }
 
 export interface CreatePatientResultRequest {
@@ -30,10 +29,7 @@ export interface CreatePatientResultRequest {
   resultDate: Date;
 }
 
-export interface CreatePatientResultResponse {
-  id: string;
-  message: string;
-}
+export interface CreatePatientResultResponse extends CreateResponse {}
 
 export interface UpdatePatientResultRequest {
   patientId?: string;

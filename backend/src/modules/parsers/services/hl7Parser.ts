@@ -1,6 +1,12 @@
 import { LabDataParser, ParseResult, HL7Message, HL7Segment, HL7OBXSegment, LabReport, LabObservation } from '../types/parserTypes';
 import { CreatePatientResultRequest } from '../../results/types/resultTypes';
 import { createNumericResult, createDescriptorResult, MetricResult } from '../../metrics/types/metricTypes';
+import { 
+  convertFirestoreTimestamp, 
+  getLabOrderData, 
+  getLabData,
+  createPatientResultsFromObservations 
+} from '../../../shared/utils';
 import { db } from '../../../config/firebase';
 
 export class HL7Parser implements LabDataParser {
@@ -341,39 +347,26 @@ export class HL7Parser implements LabDataParser {
     labOrderId: string, 
     labTestId: string
   ): Promise<CreatePatientResultRequest[]> {
-    const results: CreatePatientResultRequest[] = [];
+    // Get lab order and lab data
+    const labOrderData = await getLabOrderData(labOrderId);
+    const labData = await getLabData(labOrderData?.labId || '');
     
-    // Get lab order data for additional context
-    const labOrderDoc = await db.collection('labOrders').doc(labOrderId).get();
-    const labOrderData = labOrderDoc.data();
+    // Transform observations to the format expected by shared utility
+    const observations = labReport.observations.map(obs => ({
+      metricName: obs.metricName,
+      result: obs.result,
+      observationDate: obs.observationDate
+    }));
     
-    for (const observation of labReport.observations) {
-      // Find matching metric by name
-      const metricsSnapshot = await db.collection('metrics')
-        .where('name', '==', observation.metricName)
-        .get();
-      
-      if (!metricsSnapshot.empty) {
-        const metricDoc = metricsSnapshot.docs[0];
-        const metricData = metricDoc.data();
-        
-        results.push({
-          patientId: labReport.patientId,
-          metricId: metricDoc.id,
-          metricName: observation.metricName,
-          result: observation.result,
-          labOrderId: labOrderId,
-          labTestId: labTestId,
-          labId: labOrderData?.labId || '',
-          labName: labReport.labName,
-          orderId: labReport.orderId,
-          orderingProvider: labReport.orderingProvider,
-          resultDate: observation.observationDate || labReport.reportDate
-        });
-      }
-    }
-    
-    return results;
+    // Use shared utility to create patient results
+    return createPatientResultsFromObservations(
+      observations,
+      labOrderData,
+      labData,
+      labOrderId,
+      labTestId,
+      labReport
+    );
   }
 
   private parseHL7DateTime(dateTimeStr: string): Date {

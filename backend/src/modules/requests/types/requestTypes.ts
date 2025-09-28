@@ -1,5 +1,6 @@
-export interface Request {
-  id: string;
+import { InterfaceType, BaseEntity, CreateResponse } from '../../../shared/types/common';
+
+export interface Request extends BaseEntity {
   labOrderId: string;
   patientId: string;
   labId: string;
@@ -7,9 +8,8 @@ export interface Request {
   orderId: number;
   orderingProvider: string;
   metrics: string[];
-  interfaceType: 'HL7' | 'FHIR';
+  interfaceType: InterfaceType;
   file: string; // FHIR JSON or HL7 text content
-  createdAt: Date;
 }
 
 export interface CreateRequestRequest {
@@ -20,14 +20,11 @@ export interface CreateRequestRequest {
   orderId: number;
   orderingProvider: string;
   metrics: string[];
-  interfaceType: 'HL7' | 'FHIR';
+  interfaceType: InterfaceType;
   file: string;
 }
 
-export interface CreateRequestResponse {
-  id: string;
-  message: string;
-}
+export interface CreateRequestResponse extends CreateResponse {}
 
 export interface GetRequestsResponse {
   requests: Request[];

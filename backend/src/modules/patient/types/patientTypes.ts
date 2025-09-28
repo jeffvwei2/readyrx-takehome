@@ -1,9 +1,9 @@
-export interface Patient {
-  id: string;
+import { BaseEntity, CreateResponse } from '../../../shared/types/common';
+
+export interface Patient extends BaseEntity {
   name: string;
   email: string;
   insurance: string;
-  createdAt: Date;
 }
 
 export interface CreatePatientRequest {
@@ -12,10 +12,7 @@ export interface CreatePatientRequest {
   insurance: string;
 }
 
-export interface CreatePatientResponse {
-  id: string;
-  message: string;
-}
+export interface CreatePatientResponse extends CreateResponse {}
 
 export interface UpdatePatientRequest {
   name?: string;

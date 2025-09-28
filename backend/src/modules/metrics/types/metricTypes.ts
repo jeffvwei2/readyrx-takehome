@@ -1,3 +1,5 @@
+import { BaseEntity, CreateResponse } from '../../../shared/types/common';
+
 // Base result types for different metric formats
 export interface NumericResult {
   type: 'numeric';
@@ -50,12 +52,10 @@ export type MetricResult =
   | string // Simple string value (backward compatibility)
   | boolean; // Simple boolean value (backward compatibility)
 
-export interface Metric {
-  id: string;
+export interface Metric extends BaseEntity {
   name: string;
   result: MetricResult;
   units?: string; // Optional units field (e.g., "mg/dL", "U/L", "%", "pg/mL")
-  createdAt: Date;
 }
 
 export interface CreateMetricRequest {
@@ -64,10 +64,7 @@ export interface CreateMetricRequest {
   units?: string;
 }
 
-export interface CreateMetricResponse {
-  id: string;
-  message: string;
-}
+export interface CreateMetricResponse extends CreateResponse {}
 
 export interface UpdateMetricRequest {
   name?: string;
