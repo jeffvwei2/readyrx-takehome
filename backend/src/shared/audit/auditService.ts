@@ -323,7 +323,12 @@ export class AuditService {
 
   private static async log(auditLog: AuditLog): Promise<void> {
     try {
-      await db.collection(this.COLLECTION_NAME).add(auditLog);
+      // Filter out undefined values before saving to Firestore
+      const cleanAuditLog = Object.fromEntries(
+        Object.entries(auditLog).filter(([_, value]) => value !== undefined)
+      );
+      
+      await db.collection(this.COLLECTION_NAME).add(cleanAuditLog);
     } catch (error) {
       console.error('Error logging audit event:', error);
       // Don't throw error to avoid breaking the main operation

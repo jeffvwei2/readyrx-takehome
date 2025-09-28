@@ -10,6 +10,7 @@ import { parserRoutes } from '../modules/parsers';
 import { requestRoutes } from '../modules/requests';
 import { authRoutes } from '../shared/auth/authRoutes';
 import { authenticateToken } from '../shared/auth/authMiddleware';
+import { universalAuditMiddleware } from '../shared/middleware/auditMiddleware';
 
 const router = Router();
 
@@ -19,6 +20,9 @@ router.use('/health', healthRoutes);
 
 // Protected routes (authentication required)
 router.use(authenticateToken);
+
+// Universal audit logging middleware (after authentication)
+router.use(universalAuditMiddleware);
 
 // Patient routes
 router.use('/patients', patientRoutes);

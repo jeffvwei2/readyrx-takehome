@@ -10,6 +10,7 @@ import {
   errorHandler,
   startServer
 } from './shared/middleware';
+import { universalAuditMiddleware } from './shared/middleware/auditMiddleware';
 
 dotenv.config();
 
