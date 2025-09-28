@@ -81,7 +81,9 @@ This single command will:
 ### 4. Authentication
 The application uses JWT-based API token authentication. Pre-seeded tokens are available:
 
+
 **Admin Token** (Full Access):
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRva2VuX2FkbWluX2RlZmF1bHRfMTc1OTA5NzAwMDAwMCIsIm5hbWUiOiJBZG1pbiBUb2tlbiIsImVtYWlsIjoiYWRtaW4udG9rZW5AcmVhZHlyeC5jb20iLCJyb2xlIjoiYWRtaW4iLCJwZXJtaXNzaW9ucyI6WyIqIl0sImlhdCI6MTc1OTEwMDMwOSwiZXhwIjoxNzkwNjM2MzA5fQ.yA_e5nbCK3UmSxhArDmdECnHbAvXxaz4Ei0DXJnM-6w
 
 Use this token in the frontend Token Manager or add to API requests:
 ```bash
