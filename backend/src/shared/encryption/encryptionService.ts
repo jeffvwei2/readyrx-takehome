@@ -83,11 +83,18 @@ export class EncryptionService {
     // Check if the value looks like encrypted data (base64 encoded)
     // If it doesn't look encrypted, return as-is for backward compatibility
     try {
+      // First, check if it's valid base64
+      if (!this.isValidBase64(encryptedValue)) {
+        return encryptedValue; // Not base64, so not encrypted
+      }
+      
       // Try to decode as base64 and check if it looks like encrypted data
       const decoded = Buffer.from(encryptedValue, 'base64');
-      if (decoded.length < 16) { // Too short to be encrypted (needs IV + data)
+      if (decoded.length < this.IV_LENGTH) { // Too short to be encrypted (needs IV + data)
         return encryptedValue; // Return original value if not encrypted
       }
+      
+      // Try to decrypt - if it fails, return original value
       return this.decrypt(encryptedValue);
     } catch (error: any) {
       // If decryption fails, return the original value for backward compatibility
@@ -96,12 +103,27 @@ export class EncryptionService {
     }
   }
 
+  // Helper method to check if a string is valid base64
+  private static isValidBase64(str: string): boolean {
+    try {
+      // Check if the string contains only valid base64 characters
+      const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+      if (!base64Regex.test(str)) {
+        return false;
+      }
+      
+      // Try to decode it
+      Buffer.from(str, 'base64');
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   static encryptLabResult(result: any): any {
     if (!result) return result;
 
     const encryptedResult = { ...result };
-    
-    console.log(`Encryption Service - Encrypting lab result with metricName: "${encryptedResult.metricName}"`);
     
     // Encrypt sensitive fields
     if (encryptedResult.result && typeof encryptedResult.result === 'object') {
@@ -110,12 +132,8 @@ export class EncryptionService {
       }
     }
     
-    // Encrypt other sensitive fields
-    if (encryptedResult.metricName) {
-      console.log(`Encryption Service - Encrypting metricName: "${encryptedResult.metricName}"`);
-      encryptedResult.metricName = this.encryptSensitiveField(encryptedResult.metricName);
-      console.log(`Encryption Service - Encrypted metricName: "${encryptedResult.metricName}"`);
-    }
+    // Note: metricName is not encrypted as it's not sensitive information
+    // Metric names like "Glucose", "Sodium" are standard medical terms
     
     if (encryptedResult.labName) {
       encryptedResult.labName = this.encryptSensitiveField(encryptedResult.labName);
@@ -141,10 +159,8 @@ export class EncryptionService {
       // Note: Numeric values are not encrypted, so they remain as-is
     }
     
-    // Decrypt other sensitive fields
-    if (decryptedResult.metricName) {
-      decryptedResult.metricName = this.decryptSensitiveField(decryptedResult.metricName);
-    }
+    // Note: metricName is not encrypted, so no decryption needed
+    // Metric names are stored as plain text in the database
     
     if (decryptedResult.labName) {
       decryptedResult.labName = this.decryptSensitiveField(decryptedResult.labName);
@@ -230,6 +246,11 @@ export class EncryptionService {
   // Utility method to check if a string is encrypted
   static isEncrypted(value: string): boolean {
     try {
+      // First check if it's valid base64
+      if (!this.isValidBase64(value)) {
+        return false;
+      }
+      
       // Try to decode as base64 and check structure
       const decoded = Buffer.from(value, 'base64');
       return decoded.length > this.IV_LENGTH;

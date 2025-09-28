@@ -141,7 +141,7 @@ export const seedLabOrders = async (): Promise<void> => {
           metricName: metric.name,
           result: createNumericResult(realisticValue, 'normal'),
           units: metric.units,
-          labOrderId: '', // Will be set after lab order is created
+          labOrderId: 'pending', // Will be set after lab order is created
           labTestId: cmpTest.id,
           labId: labOrder.labId,
           labName: i % 2 === 0 ? 'Quest Diagnostics' : 'LabCorp',
@@ -188,7 +188,7 @@ export const seedLabOrders = async (): Promise<void> => {
           metricName: metric.name,
           result: createNumericResult(realisticValue, 'normal'),
           units: metric.units,
-          labOrderId: '', // Will be set after lab order is created
+          labOrderId: 'pending', // Will be set after lab order is created
           labTestId: cbcTest.id,
           labId: labOrder.labId,
           labName: i % 2 === 0 ? 'Quest Diagnostics' : 'LabCorp',
@@ -257,7 +257,7 @@ export const seedLabOrders = async (): Promise<void> => {
           metricName: metric.name,
           result: createNumericResult(realisticValue, 'normal'),
           units: metric.units,
-          labOrderId: '', // Will be set after lab order is created
+          labOrderId: 'pending', // Will be set after lab order is created
           labTestId: cmpTest.id,
           labId: labId,
           labName: labName,
@@ -282,7 +282,7 @@ export const seedLabOrders = async (): Promise<void> => {
           metricName: metric.name,
           result: createNumericResult(realisticValue, 'normal'),
           units: metric.units,
-          labOrderId: '', // Will be set after lab order is created
+          labOrderId: 'pending', // Will be set after lab order is created
           labTestId: cbcTest.id,
           labId: labId,
           labName: labName,
