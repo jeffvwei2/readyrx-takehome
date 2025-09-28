@@ -38,27 +38,16 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
     fetchLabOrders();
   }, [fetchLabOrders]);
 
-  useEffect(() => {
-    const handleOpenUploadModal = (event: CustomEvent) => {
-      setUploadHandler(() => event.detail.onUpload);
-      setUploadModalOpen(true);
-    };
+  // Direct callback for opening upload modal
+  const handleOpenUploadModal = useCallback((onUpload: (fileContent: string, fileName: string) => Promise<void>) => {
+    setUploadHandler(() => onUpload);
+    setUploadModalOpen(true);
+  }, []);
 
-    const handleRefreshLabOrders = (event: CustomEvent) => {
-      // Only refresh if the lab order was created for the currently selected patient
-      if (event.detail.patientId === patient.id) {
-        console.log('Refreshing lab orders for patient:', patient.id);
-        fetchLabOrders();
-      }
-    };
-
-    window.addEventListener('openUploadModal', handleOpenUploadModal as EventListener);
-    window.addEventListener('refreshPatientLabOrders', handleRefreshLabOrders as EventListener);
-    
-    return () => {
-      window.removeEventListener('openUploadModal', handleOpenUploadModal as EventListener);
-      window.removeEventListener('refreshPatientLabOrders', handleRefreshLabOrders as EventListener);
-    };
+  // Direct callback for refreshing lab orders
+  const handleRefreshLabOrders = useCallback(() => {
+    console.log('Refreshing lab orders for patient:', patient.id);
+    fetchLabOrders();
   }, [patient.id, fetchLabOrders]);
 
   return (
@@ -76,6 +65,7 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
               <PatientUpload 
                 patient={patient}
                 onUploadComplete={refreshPatientProfile}
+                onOpenUploadModal={handleOpenUploadModal}
               />
               <div className="text-right">
                 <div className="text-sm text-gray-500">

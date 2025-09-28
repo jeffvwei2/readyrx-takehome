@@ -69,6 +69,8 @@ export interface ChartDataPoint {
   provider: string;
   units?: string;
   fullDate?: Date;
+  uniqueKey?: string; // Unique identifier for each data point
+  displayDate?: string; // More specific date/time for display
 }
 
 // Component Prop Types

@@ -159,12 +159,6 @@ const LabOrderForm: React.FC<LabOrderFormProps> = ({ onLabOrderCreated }) => {
       setErrors({});
       onLabOrderCreated();
       
-      // Dispatch custom event to refresh lab orders for the specific patient
-      const refreshEvent = new CustomEvent('refreshPatientLabOrders', {
-        detail: { patientId: response.data.patientId || formData.patientId }
-      });
-      window.dispatchEvent(refreshEvent);
-      
       alert(`Lab order created successfully! Order ID: ${response.data.orderId}`);
       
     } catch (error) {

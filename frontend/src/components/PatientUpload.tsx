@@ -5,9 +5,10 @@ import { Patient } from '../types';
 interface PatientUploadProps {
   patient: Patient;
   onUploadComplete: () => void;
+  onOpenUploadModal: (onUpload: (fileContent: string, fileName: string) => Promise<void>) => void;
 }
 
-const PatientUpload: React.FC<PatientUploadProps> = ({ patient, onUploadComplete }) => {
+const PatientUpload: React.FC<PatientUploadProps> = ({ patient, onUploadComplete, onOpenUploadModal }) => {
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (fileContent: string, fileName: string) => {
@@ -43,12 +44,6 @@ const PatientUpload: React.FC<PatientUploadProps> = ({ patient, onUploadComplete
       // Step 3: Refresh lab orders to show the new one
       await onUploadComplete();
       
-      // Dispatch custom event to refresh lab orders for this specific patient
-      const refreshEvent = new CustomEvent('refreshPatientLabOrders', {
-        detail: { patientId: patient.id }
-      });
-      window.dispatchEvent(refreshEvent);
-      
       console.log('Lab order and results created successfully:', resultParseResponse.data);
     } catch (error) {
       console.error('Error processing file upload:', error);
@@ -61,11 +56,8 @@ const PatientUpload: React.FC<PatientUploadProps> = ({ patient, onUploadComplete
   return (
     <button
       onClick={() => {
-        // This will be handled by the parent component's modal
-        const event = new CustomEvent('openUploadModal', { 
-          detail: { patient, onUpload: handleFileUpload } 
-        });
-        window.dispatchEvent(event);
+        // Use direct callback instead of event
+        onOpenUploadModal(handleFileUpload);
       }}
       disabled={uploading}
       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

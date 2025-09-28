@@ -47,7 +47,9 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
               labName: result.labName,
               provider: result.orderingProvider,
               units: result.units,
-              fullDate: resultDate
+              fullDate: resultDate,
+              uniqueKey: `${resultDate.toISOString()}_${result.orderId}_${result.labOrderId}`, // Unique identifier for each data point
+              displayDate: resultDate.toLocaleDateString() + ' ' + resultDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) // More specific date/time for display
             };
           })
           .filter((item): item is ChartDataPoint => item !== null)
@@ -108,7 +110,9 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
                 labName: result.labName,
                 provider: result.orderingProvider,
                 units: result.units,
-                fullDate: resultDate
+                fullDate: resultDate,
+                uniqueKey: `${resultDate.toISOString()}_${result.orderId}_${result.labOrderId}`, // Unique identifier for each data point
+                displayDate: resultDate.toLocaleDateString() + ' ' + resultDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) // More specific date/time for display
               };
             })
             .filter((item): item is ChartDataPoint => item !== null)
@@ -145,7 +149,8 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
       `${value}${units ? ` ${units}` : ''}`,
       `Order: ${data.orderId}`,
       `Lab: ${data.labName}`,
-      `Provider: ${data.provider}`
+      `Provider: ${data.provider}`,
+      `Time: ${data.displayDate || data.date}`
     ];
   };
 
@@ -211,7 +216,7 @@ const HistoricalChart: React.FC<HistoricalChartProps> = ({ patientId, metricName
           <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="date" 
+              dataKey="displayDate" 
               tick={{ fontSize: 12 }}
               angle={-45}
               textAnchor="end"
