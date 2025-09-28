@@ -13,9 +13,9 @@ export interface ServerConfig {
  * Detects which server port is available and returns the appropriate configuration
  */
 export const detectServerConfig = async (): Promise<ServerConfig> => {
-  // Try HTTPS first (port 3443)
+  // Try HTTPS first (port 3001)
   try {
-    const httpsResponse = await fetch('https://localhost:3443/api/auth/info', {
+    const httpsResponse = await fetch('https://localhost:3001/api/auth/info', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -27,18 +27,18 @@ export const detectServerConfig = async (): Promise<ServerConfig> => {
     if (httpsResponse.ok || httpsResponse.status === 401) {
       // Server is responding (401 is expected without auth)
       return {
-        baseURL: 'https://localhost:3443',
+        baseURL: 'https://localhost:3001',
         protocol: 'https',
-        port: 3443
+        port: 3001
       };
     }
   } catch (error) {
     console.log('HTTPS server not available, trying HTTP...');
   }
 
-  // Try HTTP (port 3001)
+  // Try HTTP (port 3002)
   try {
-    const httpResponse = await fetch('http://localhost:3001/api/auth/info', {
+    const httpResponse = await fetch('http://localhost:3002/api/auth/info', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -48,19 +48,19 @@ export const detectServerConfig = async (): Promise<ServerConfig> => {
     if (httpResponse.ok || httpResponse.status === 401) {
       // Server is responding (401 is expected without auth)
       return {
-        baseURL: 'http://localhost:3001',
+        baseURL: 'http://localhost:3002',
         protocol: 'http',
-        port: 3001
+        port: 3002
       };
     }
   } catch (error) {
     console.error('Neither HTTPS nor HTTP server is available');
   }
 
-  // Fallback to HTTP (default)
+  // Fallback to HTTPS (default)
   return {
-    baseURL: 'http://localhost:3001',
-    protocol: 'http',
+    baseURL: 'https://localhost:3001',
+    protocol: 'https',
     port: 3001
   };
 };

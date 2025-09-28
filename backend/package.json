@@ -10,7 +10,7 @@
     "seed": "ts-node-dev --transpile-only src/seeding/runSeed.ts",
     "generate-cert": "ts-node-dev --transpile-only src/shared/middleware/httpsConfig.ts",
     "test-encryption": "ts-node-dev --transpile-only src/config/testEncryptedFirebase.ts",
-    "update-token": "ts-node-dev --transpile-only src/scripts/updateApiToken.ts",
+    "update-tokens": "ts-node-dev --transpile-only src/scripts/updateApiTokens.ts",
     "clean": "rm -rf dist"
   },
   "dependencies": {

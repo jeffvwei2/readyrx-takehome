@@ -72,6 +72,7 @@ export const createMultipleLabOrders = async (
     res.json({ 
       orderId, 
       labOrderIds, 
+      patientId: patientId,
       message: `Successfully created ${labOrderIds.length} lab order(s) with Order ID: ${orderId}` 
     });
   } catch (error) {

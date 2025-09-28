@@ -43,6 +43,12 @@ const PatientUpload: React.FC<PatientUploadProps> = ({ patient, onUploadComplete
       // Step 3: Refresh lab orders to show the new one
       await onUploadComplete();
       
+      // Dispatch custom event to refresh lab orders for this specific patient
+      const refreshEvent = new CustomEvent('refreshPatientLabOrders', {
+        detail: { patientId: patient.id }
+      });
+      window.dispatchEvent(refreshEvent);
+      
       console.log('Lab order and results created successfully:', resultParseResponse.data);
     } catch (error) {
       console.error('Error processing file upload:', error);

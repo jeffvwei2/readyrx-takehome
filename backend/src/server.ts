@@ -7,16 +7,13 @@ import {
   corsConfig, 
   bodyParserConfig, 
   requestLogger, 
-  errorHandler 
+  errorHandler,
+  startServer
 } from './shared/middleware';
-import { createHttpsServer, generateSelfSignedCert } from './shared/middleware/httpsConfig';
-import { logApiTokens } from './utils/logApiTokens';
-import { seedAll } from './seeding/seedAll';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
 // Trust proxy for rate limiting (needed when behind load balancers/proxies)
 app.set('trust proxy', 1);
@@ -43,110 +40,5 @@ app.use('/api', routes);
 // Error handling middleware (should be last)
 app.use(errorHandler);
 
-// Helper functions
-const checkIfDatabaseHasData = async (): Promise<boolean> => {
-  try {
-    const { db } = await import('./config/firebase');
-    
-    // Check multiple collections to determine if data exists
-    const collections = [
-      'patients',
-      'labs', 
-      'labTests',
-      'metrics',
-      'labOrders',
-      'patientResults',
-      'requests',
-      'auditLogs',
-      'apiTokens'
-    ];
-    
-    for (const collectionName of collections) {
-      const snapshot = await db.collection(collectionName).limit(1).get();
-      if (!snapshot.empty) {
-        console.log(`📋 Found existing data in ${collectionName} collection`);
-        return true;
-      }
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('Error checking database for existing data:', error);
-    // If we can't check, assume no data exists and proceed with seeding
-    return false;
-  }
-};
-
-const checkAndSeedIfNeeded = async (): Promise<void> => {
-  try {
-    console.log('\n🔍 Checking if database needs seeding...');
-    
-    // Check if database already has data
-    const hasData = await checkIfDatabaseHasData();
-    
-    if (hasData) {
-      console.log('✅ Database already contains data, skipping seeding');
-      return;
-    }
-    
-    console.log('📊 Database is empty, running initial seeding...');
-    await seedAll();
-    
-  } catch (error) {
-    console.error('❌ Error during seeding check:', error);
-  }
-};
-
 // Start server
-const startServer = async () => {
-  // Check if database needs seeding (only if empty)
-  await checkAndSeedIfNeeded();
-  
-  // Log available API tokens
-  await logApiTokens();
-
-  // Try to create HTTPS server first
-  const httpsServer = createHttpsServer(app);
-  
-  if (httpsServer) {
-    // Try to start HTTPS server
-    const httpsPort = process.env.HTTPS_PORT || 3443;
-    
-    httpsServer.on('error', (error: any) => {
-      if (error.code === 'EADDRINUSE') {
-        console.log(`⚠️ HTTPS port ${httpsPort} is already in use`);
-        console.log('🔓 Falling back to HTTP server');
-        startHttpServer();
-      } else {
-        console.error('❌ HTTPS server error:', error);
-        console.log('🔓 Falling back to HTTP server');
-        startHttpServer();
-      }
-    });
-    
-    httpsServer.listen(httpsPort, () => {
-      console.log(`🔒 HTTPS Server is running on port ${httpsPort}`);
-      console.log(`   Access your app at: https://localhost:${httpsPort}`);
-      console.log('✅ HTTPS server started successfully');
-    });
-  } else {
-    console.log('🔓 Starting HTTP server (HTTPS not configured)');
-    startHttpServer();
-  }
-
-  function startHttpServer() {
-    app.listen(PORT, () => {
-      console.log(`🌐 HTTP Server is running on port ${PORT}`);
-      console.log(`   Access your app at: http://localhost:${PORT}`);
-      
-      if (!httpsServer) {
-        console.log('\n💡 To enable HTTPS:');
-        console.log('   1. Run: npm run generate-cert');
-        console.log('   2. Set HTTPS_ENABLED=true in your .env file');
-        console.log('   3. Restart the server');
-      }
-    });
-  }
-};
-
-startServer().catch(console.error);
+startServer(app).catch(console.error);

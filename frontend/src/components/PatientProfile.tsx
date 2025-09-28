@@ -44,12 +44,22 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
       setUploadModalOpen(true);
     };
 
+    const handleRefreshLabOrders = (event: CustomEvent) => {
+      // Only refresh if the lab order was created for the currently selected patient
+      if (event.detail.patientId === patient.id) {
+        console.log('Refreshing lab orders for patient:', patient.id);
+        fetchLabOrders();
+      }
+    };
+
     window.addEventListener('openUploadModal', handleOpenUploadModal as EventListener);
+    window.addEventListener('refreshPatientLabOrders', handleRefreshLabOrders as EventListener);
     
     return () => {
       window.removeEventListener('openUploadModal', handleOpenUploadModal as EventListener);
+      window.removeEventListener('refreshPatientLabOrders', handleRefreshLabOrders as EventListener);
     };
-  }, []);
+  }, [patient.id, fetchLabOrders]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">

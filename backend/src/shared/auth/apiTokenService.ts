@@ -30,10 +30,29 @@ export class AuthService {
   private static readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
   private static readonly JWT_EXPIRES_IN = '365d'; // Long-lived tokens
 
-  static async createApiToken(name: string, role: UserRole): Promise<ApiToken> {
+  static async createApiToken(name: string, role: UserRole, customTokenId?: string): Promise<ApiToken> {
     try {
-      // Generate a unique token ID
-      const tokenId = this.generateTokenId();
+      // Generate a unique token ID (use custom ID if provided for seeding)
+      const tokenId = customTokenId || this.generateTokenId();
+      
+      // Check if token with this ID already exists
+      const existingToken = await db.collection('apiTokens')
+        .where('id', '==', tokenId)
+        .limit(1)
+        .get();
+      
+      if (!existingToken.empty) {
+        // Return existing token instead of creating duplicate
+        const data = existingToken.docs[0].data();
+        return {
+          id: data.id,
+          name: data.name,
+          role: data.role,
+          token: data.token,
+          createdAt: data.createdAt.toDate(),
+          isActive: data.isActive
+        };
+      }
       
       // Create JWT token
       const user: AuthenticatedUser = {
@@ -168,7 +187,11 @@ export class AuthService {
   }
 
   private static generateTokenId(): string {
-    return 'token_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    // Generate a deterministic token ID based on role and timestamp
+    // This ensures tokens are consistent across server restarts
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substr(2, 9);
+    return `token_${randomSuffix}_${timestamp}`;
   }
 
   private static getPermissionsForRole(role: UserRole): string[] {

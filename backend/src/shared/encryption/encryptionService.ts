@@ -58,7 +58,7 @@ export class EncryptionService {
       
       const decipher = crypto.createDecipheriv(this.ALGORITHM, key, iv);
       
-      let decrypted = decipher.update(encrypted, null, 'utf8');
+      let decrypted = decipher.update(encrypted, undefined, 'utf8');
       decrypted += decipher.final('utf8');
       
       return decrypted;
@@ -89,7 +89,7 @@ export class EncryptionService {
         return encryptedValue; // Return original value if not encrypted
       }
       return this.decrypt(encryptedValue);
-    } catch (error) {
+    } catch (error: any) {
       // If decryption fails, return the original value for backward compatibility
       console.warn('Failed to decrypt field, returning original value:', error.message);
       return encryptedValue;
@@ -138,6 +138,7 @@ export class EncryptionService {
       if (decryptedResult.result.value && typeof decryptedResult.result.value === 'string') {
         decryptedResult.result.value = this.decryptSensitiveField(decryptedResult.result.value);
       }
+      // Note: Numeric values are not encrypted, so they remain as-is
     }
     
     // Decrypt other sensitive fields
@@ -231,7 +232,7 @@ export class EncryptionService {
     try {
       // Try to decode as base64 and check structure
       const decoded = Buffer.from(value, 'base64');
-      return decoded.length > (this.IV_LENGTH + this.TAG_LENGTH);
+      return decoded.length > this.IV_LENGTH;
     } catch {
       return false;
     }

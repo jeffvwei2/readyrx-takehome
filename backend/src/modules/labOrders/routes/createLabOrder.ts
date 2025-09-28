@@ -28,7 +28,11 @@ export const createLabOrder = async (req: Request<{}, CreateLabOrderResponse, Cr
       status,
       completedDate
     );
-    res.json({ id: labOrderId, message: 'Lab order created successfully' });
+    res.json({ 
+      id: labOrderId, 
+      patientId: patientId,
+      message: 'Lab order created successfully' 
+    });
   } catch (error) {
     console.error('Error creating lab order:', error);
     res.status(500).json({ error: 'Failed to create lab order' });
