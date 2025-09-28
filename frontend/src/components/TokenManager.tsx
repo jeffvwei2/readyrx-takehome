@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './Auth';
+import { configureAxios } from '../utils/serverDetection';
 
 interface TokenManagerProps {
   className?: string;
@@ -25,6 +26,9 @@ const TokenManager: React.FC<TokenManagerProps> = ({ className = '' }) => {
     setError('');
 
     try {
+      // Ensure axios is configured with the correct server
+      await configureAxios();
+      
       // Test the token by making a request
       const response = await fetch('/api/auth/info', {
         headers: { 

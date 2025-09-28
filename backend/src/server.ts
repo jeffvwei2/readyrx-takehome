@@ -109,28 +109,44 @@ const startServer = async () => {
   const httpsServer = createHttpsServer(app);
   
   if (httpsServer) {
-    // Start HTTPS server
-    httpsServer.listen(process.env.HTTPS_PORT || 3443, () => {
-      console.log(`🔒 HTTPS Server is running on port ${process.env.HTTPS_PORT || 3443}`);
-      console.log(`   Access your app at: https://localhost:${process.env.HTTPS_PORT || 3443}`);
+    // Try to start HTTPS server
+    const httpsPort = process.env.HTTPS_PORT || 3443;
+    
+    httpsServer.on('error', (error: any) => {
+      if (error.code === 'EADDRINUSE') {
+        console.log(`⚠️ HTTPS port ${httpsPort} is already in use`);
+        console.log('🔓 Falling back to HTTP server');
+        startHttpServer();
+      } else {
+        console.error('❌ HTTPS server error:', error);
+        console.log('🔓 Falling back to HTTP server');
+        startHttpServer();
+      }
+    });
+    
+    httpsServer.listen(httpsPort, () => {
+      console.log(`🔒 HTTPS Server is running on port ${httpsPort}`);
+      console.log(`   Access your app at: https://localhost:${httpsPort}`);
+      console.log('✅ HTTPS server started successfully');
     });
   } else {
-    // Fallback to HTTP server
     console.log('🔓 Starting HTTP server (HTTPS not configured)');
+    startHttpServer();
   }
 
-  // Always start HTTP server (for development or fallback)
-  app.listen(PORT, () => {
-    console.log(`🌐 HTTP Server is running on port ${PORT}`);
-    console.log(`   Access your app at: http://localhost:${PORT}`);
-    
-    if (!httpsServer) {
-      console.log('\n💡 To enable HTTPS:');
-      console.log('   1. Run: npm run generate-cert');
-      console.log('   2. Set HTTPS_ENABLED=true in your .env file');
-      console.log('   3. Restart the server');
-    }
-  });
+  function startHttpServer() {
+    app.listen(PORT, () => {
+      console.log(`🌐 HTTP Server is running on port ${PORT}`);
+      console.log(`   Access your app at: http://localhost:${PORT}`);
+      
+      if (!httpsServer) {
+        console.log('\n💡 To enable HTTPS:');
+        console.log('   1. Run: npm run generate-cert');
+        console.log('   2. Set HTTPS_ENABLED=true in your .env file');
+        console.log('   3. Restart the server');
+      }
+    });
+  }
 };
 
 startServer().catch(console.error);

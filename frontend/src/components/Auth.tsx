@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { configureAxios } from '../utils/serverDetection';
 
 interface AuthContextType {
   user: any | null;
@@ -30,19 +31,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token on app load
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      setTokenState(storedToken);
-      // Set default axios header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+    initializeAuth();
+  }, []);
+
+  const initializeAuth = async () => {
+    try {
+      // Configure axios with detected server
+      await configureAxios();
       
-      // Verify token and get user info
-      verifyToken(storedToken);
-    } else {
+      // Check for stored token on app load
+      const storedToken = localStorage.getItem('authToken');
+      if (storedToken) {
+        setTokenState(storedToken);
+        // Set default axios header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        
+        // Verify token and get user info
+        verifyToken(storedToken);
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error initializing auth:', error);
       setLoading(false);
     }
-  }, []);
+  };
 
   const verifyToken = async (tokenToVerify: string) => {
     try {

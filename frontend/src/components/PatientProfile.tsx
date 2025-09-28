@@ -84,10 +84,10 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
 
       {/* Main Content Area - Scrollable */}
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex gap-6 items-stretch">
+        <div className="max-w-6xl mx-auto min-w-[800px]">
+          <div className="flex gap-6 items-stretch min-h-[600px]">
             {/* Sidebar - Recent Labs (1/3 width) */}
-            <div className="w-1/3 flex flex-col">
+            <div className="w-1/3 flex flex-col min-w-[300px]">
               <RecentLabs 
                 labOrders={labOrders} 
                 loading={loading}
@@ -95,7 +95,9 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
             </div>
 
             {/* Main Content - Metrics Dashboard (2/3 width) */}
-            <MetricsDashboard patient={patient} />
+            <div className="w-2/3 flex flex-col min-w-[500px]">
+              <MetricsDashboard patient={patient} />
+            </div>
           </div>
         </div>
       </div>

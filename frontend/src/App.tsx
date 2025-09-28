@@ -5,24 +5,32 @@ import { Patient } from './types';
 import Sidebar from './components/Sidebar';
 import PatientProfile from './components/PatientProfile';
 import { AuthProvider, ProtectedRoute } from './components/Auth';
+import { configureAxios } from './utils/serverDetection';
 
 const App: React.FC = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPatients();
+    initializeApp();
   }, []);
 
-  const fetchPatients = async (): Promise<void> => {
+  const initializeApp = async (): Promise<void> => {
     try {
       setLoading(true);
+      
+      // Configure axios with detected server
+      await configureAxios();
+      
+      // Test the connection by fetching patients
       await axios.get<Patient[]>('/api/patients');
+      
+      console.log('✅ Frontend successfully connected to backend');
       
       // Don't auto-select any patient on initial load
       // Let the user choose from the sidebar
     } catch (error) {
-      console.error('Error fetching patients:', error);
+      console.error('❌ Error connecting to backend:', error);
     } finally {
       setLoading(false);
     }
@@ -32,8 +40,12 @@ const App: React.FC = () => {
     setSelectedPatient(patient);
   };
 
-  const handleRefreshPatients = () => {
-    fetchPatients();
+  const handleRefreshPatients = async () => {
+    try {
+      await axios.get<Patient[]>('/api/patients');
+    } catch (error) {
+      console.error('Error refreshing patients:', error);
+    }
   };
 
   if (loading) {

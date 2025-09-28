@@ -15,7 +15,7 @@ const MetricsDashboard: React.FC<MetricsDashboardProps> = ({ patient }) => {
   }, []);
 
   return (
-    <div className="w-2/3 flex flex-col">
+    <div className="flex flex-col h-full">
       {/* Metric Filter */}
       <MetricFilter 
         patientId={patient.id}
