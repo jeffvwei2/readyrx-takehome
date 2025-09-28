@@ -5,7 +5,7 @@ import LabOrderForm from './LabOrderForm';
 import TokenManager from './TokenManager';
 import { SidebarProps } from '../types';
 
-const Sidebar: React.FC<SidebarProps> = ({ onPatientSelect, onRefreshPatients }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onPatientSelect, onRefreshPatients, onLabOrderCreated }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'list' | 'laborder'>('form');
 
   return (
@@ -60,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onPatientSelect, onRefreshPatients })
         ) : activeTab === 'list' ? (
           <PatientList onPatientSelect={onPatientSelect} />
         ) : (
-          <LabOrderForm onLabOrderCreated={onRefreshPatients} />
+          <LabOrderForm onLabOrderCreated={onLabOrderCreated} />
         )}
       </div>
     </div>

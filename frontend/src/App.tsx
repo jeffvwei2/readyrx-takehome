@@ -48,6 +48,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLabOrderCreated = () => {
+    // Refresh patient profile if a patient is selected
+    if (selectedPatient) {
+      // Trigger a custom event to refresh the patient profile
+      const refreshEvent = new CustomEvent('refreshPatientProfile');
+      window.dispatchEvent(refreshEvent);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -66,6 +75,7 @@ const App: React.FC = () => {
           <Sidebar 
             onPatientSelect={handlePatientSelect}
             onRefreshPatients={handleRefreshPatients}
+            onLabOrderCreated={handleLabOrderCreated}
           />
           
           {selectedPatient ? (

@@ -105,6 +105,7 @@ export interface PatientListProps {
 export interface SidebarProps {
   onPatientSelect: (patient: Patient) => void;
   onRefreshPatients: () => void;
+  onLabOrderCreated: () => void;
 }
 
 // Lab Test Types

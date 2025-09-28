@@ -38,6 +38,20 @@ const PatientProfile: React.FC<PatientProfileProps> = ({ patient }) => {
     fetchLabOrders();
   }, [fetchLabOrders]);
 
+  // Listen for lab order creation events
+  useEffect(() => {
+    const handleRefreshPatientProfile = () => {
+      console.log('Refreshing patient profile due to new lab order');
+      fetchLabOrders();
+    };
+
+    window.addEventListener('refreshPatientProfile', handleRefreshPatientProfile);
+    
+    return () => {
+      window.removeEventListener('refreshPatientProfile', handleRefreshPatientProfile);
+    };
+  }, [fetchLabOrders]);
+
   // Direct callback for opening upload modal
   const handleOpenUploadModal = useCallback((onUpload: (fileContent: string, fileName: string) => Promise<void>) => {
     setUploadHandler(() => onUpload);
